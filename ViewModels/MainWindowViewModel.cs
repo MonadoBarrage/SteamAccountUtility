@@ -15,8 +15,15 @@ public partial class MainWindowViewModel : ViewModelBase
     public MainWindowViewModel()
     {
         CurrentPage = new LoginWindowViewModel();
-         
+         WeakReferenceMessenger.Default.Register<MainWindowViewModel, GoToHomePage>
+         (this, (s, p) =>
+         {
+            s.CurrentPage = new HomeWindowViewModel();    
+         });
     }
+
+
+    
     
     
 }

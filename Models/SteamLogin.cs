@@ -44,43 +44,6 @@ internal sealed class SteamLogin : IDisposable
     {
         throw new NotImplementedException();
     }
-    
-    // public void FetchFilePath(string path)
-    // {
-    //     LoginFilePath = path;
-    // }
-    //
-    // public void FetchCredentials()
-    // {
-    //     LoginDetails? loginDetails;
-    //
-    //     var jsonString = File.ReadAllText(LoginFilePath);
-    //
-    //     // string? jsonString = File.ReadAllText(filename);
-    //     if (!string.IsNullOrWhiteSpace(jsonString))
-    //         loginDetails = JsonSerializer.Deserialize<LoginDetails>(jsonString);
-    //     else return;
-    //     _username = loginDetails.Username;
-    //     _password = loginDetails.Password;
-    //     _previouslyStoredGuardData = loginDetails.PreviouslyStoredGuardData;
-    // }
-
-    // public void SaveCredentials()
-    // {
-    //     // LoginDetails loginDetails = new LoginDetails{Username = _username, Password = _password, PreviouslyStoredGuardData = _previouslyStoredGuardData};
-    //     // string jsonString = JsonSerializer.Serialize(loginDetails);
-    //     // byte[] dataBytes = Encoding.UTF8.GetBytes(jsonString);
-    //     // stream.Write(dataBytes, 0, dataBytes.Length);
-    //     // stream.Flush();
-    //     var loginDetails = new LoginDetails
-    //         { Username = _username, Password = _password, PreviouslyStoredGuardData = _previouslyStoredGuardData };
-    //
-    //     Console.WriteLine(JsonSerializer.Serialize(loginDetails));
-    //     var writer = new StreamWriter(LoginFilePath);
-    //     writer.Write(JsonSerializer.Serialize(loginDetails));
-    //     writer.Flush();
-    //     writer.Close();
-    // }
 
     public void GetCredentials(string username, string password, string steamkey)
     {
@@ -114,8 +77,10 @@ internal sealed class SteamLogin : IDisposable
         
         isRunning = true;
 
+        #if DEBUG
         Console.WriteLine("Connecting to Steam...");
-
+        #endif
+        
         steamClient.Connect();
 
         while (isRunning)
@@ -128,8 +93,10 @@ internal sealed class SteamLogin : IDisposable
     {
         try
         {
-            Console.WriteLine("Connected to Steam! Logging in '{0}'...", _username);
-
+            #if DEBUG
+                Console.WriteLine("Connected to Steam! Logging in '{0}'...", _username);
+            #endif
+            
             var shouldRememberPassword = true;
 
             WeakReferenceMessenger.Default.Send(new UpdateLoginMessage("Use the Steam Guard App to approve this login"));
@@ -180,8 +147,9 @@ internal sealed class SteamLogin : IDisposable
 
     private void OnDisconnected(SteamClient.DisconnectedCallback callback)
     {
-        Console.WriteLine("Disconnected from Steam");
-
+        #if DEBUG
+            Console.WriteLine("Disconnected from Steam");
+        #endif
         isRunning = false;
     }
 
@@ -189,15 +157,17 @@ internal sealed class SteamLogin : IDisposable
     {
         if (callback.Result != EResult.OK)
         {
-            Console.WriteLine("Unable to logon to Steam: {0} / {1}", callback.Result, callback.ExtendedResult);
-
+            #if DEBUG
+                Console.WriteLine("Unable to logon to Steam: {0} / {1}", callback.Result, callback.ExtendedResult);
+            #endif
             isRunning = false;
             return;
         }
-
-        Console.WriteLine("Successfully logged on!");
         
-        var friendName = await steamFriends.RequestProfileInfo(steamUser.SteamID);
+        #if DEBUG
+        Console.WriteLine("Successfully logged on!");
+        #endif
+        await steamFriends.RequestProfileInfo(steamUser.SteamID);
 
         await FetchGameList();
 
@@ -209,7 +179,9 @@ internal sealed class SteamLogin : IDisposable
 
     private void OnLoggedOff(SteamUser.LoggedOffCallback callback)
     {
+        #if DEBUG
         Console.WriteLine("Logged off of Steam: {0}", callback.Result);
+        #endif
     }
 
     private void OnAccountInfo(SteamUser.AccountInfoCallback callback)
@@ -229,8 +201,9 @@ internal sealed class SteamLogin : IDisposable
         
         NumberOfFriends = steamFriends.GetFriendCount();
 
+        #if DEBUG
         Console.WriteLine("We have {0} friends", NumberOfFriends);
-
+        #endif
         for (var x = 0; x < NumberOfFriends; x++)
         {
             // steamids identify objects that exist on the steam network, such as friends, as an example
@@ -263,7 +236,9 @@ internal sealed class SteamLogin : IDisposable
         // Console.WriteLine( "PersonaState: {0}", callback.Name );
         if (callback.FriendID == steamUser.SteamID)
         {
-            Console.WriteLine("My id: {0}",steamUser.SteamID);
+            #if DEBUG
+                Console.WriteLine("My id: {0}",steamUser.SteamID);
+            #endif
             WeakReferenceMessenger.Default.Send(new ReceiveProfileName(callback.Name));
             return;
         }
@@ -274,8 +249,12 @@ internal sealed class SteamLogin : IDisposable
         }
         FriendsList.Add(callback.FriendID.ToString(),callback.Name);
         ++processedFriends;
-        if (processedFriends >= NumberOfFriends)
+        if (processedFriends == NumberOfFriends)
         {
+            #if DEBUG
+                Console.WriteLine("Received Friends List");
+            #endif
+            
             WeakReferenceMessenger.Default.Send(new ReceiveFriendsList(FriendsList));
         }
     }
@@ -288,7 +267,10 @@ internal sealed class SteamLogin : IDisposable
                           "&steamid=" +
                           sid.ConvertToUInt64() +
                           "&include_appinfo=1";
+        #if DEBUG
         Console.WriteLine($"Fetching {requestLink}");
+        #endif
+        
         using HttpResponseMessage response = await httpClient.GetAsync(requestLink);
         
         response.EnsureSuccessStatusCode();
@@ -297,13 +279,13 @@ internal sealed class SteamLogin : IDisposable
         var jsonResponse = await response.Content.ReadAsStringAsync();
 
         var obj = JsonSerializer.Deserialize<SteamGameHTTPRequest>(jsonResponse);
-        if (obj != null)
-        {
-            foreach (var singlegame in obj.Response.Games)
-            {
-                Console.WriteLine(singlegame.Name);
-            }
-        }
+        // if (obj != null)
+        // {
+        //     foreach (var singlegame in obj.Response.Games)
+        //     {
+        //         Console.WriteLine(singlegame.Name);
+        //     }
+        // }
     }
     
 
