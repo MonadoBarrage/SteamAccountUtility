@@ -6,6 +6,7 @@ using System.Linq;
 using Avalonia.Markup.Xaml;
 using SteamAccountUtility.ViewModels;
 using SteamAccountUtility.Views;
+using SteamAccountUtility;
 
 namespace SteamAccountUtility;
 
@@ -14,6 +15,7 @@ public partial class App : Application
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
+        
     }
 
     public override void OnFrameworkInitializationCompleted()
@@ -29,3 +31,4 @@ public partial class App : Application
         base.OnFrameworkInitializationCompleted();
     }
 }
+

@@ -3,4 +3,7 @@ using SteamAccountUtility.ViewModels;
 
 namespace SteamAccountUtility.Messages;
 
-public class GoToHomePage;
+public class GoToHomePage(bool checkIfUserCanEnter)
+{
+    public readonly bool IsValid = checkIfUserCanEnter;
+}

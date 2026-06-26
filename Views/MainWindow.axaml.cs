@@ -24,14 +24,15 @@ public partial class MainWindow : Window
         //     });
         
         
-        WeakReferenceMessenger.Default.Register<MainWindow, GoToHomePage>
-        (this, static (win, mang) =>
-        {
-            if (win.DataContext is MainWindowViewModel vm)
-            {
-                vm.CurrentPage = new HomeWindowViewModel("This is after");
-            }
-        });
+        // WeakReferenceMessenger.Default.Register<MainWindow, GoToHomePage>
+        // (this, static (win, mang) =>
+        // {
+        //     if(mang.IsValid)
+        //         if (win.DataContext is MainWindowViewModel vm)
+        //         {
+        //             vm.CurrentPage = new HomeWindowViewModel("This is after");
+        //         }
+        // });
         
     }
 }

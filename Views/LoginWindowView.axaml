@@ -37,7 +37,13 @@
                      PasswordChar="*"
                      RevealPassword="False"
                      />
-            
+            <TextBox Padding="10" MaxLines="1" HorizontalAlignment="Stretch" Margin="5"
+                VerticalContentAlignment="Center" Height="50" AcceptsReturn="False"
+                PlaceholderText="Enter steam key"
+                Text="{Binding SteamKey}"
+                PasswordChar="*"
+                RevealPassword="False"
+                />
         </StackPanel>
 
     </DockPanel>
