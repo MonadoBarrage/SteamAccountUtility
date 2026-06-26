@@ -21,6 +21,7 @@ internal sealed class SteamLogin : IDisposable
     private string _username;
     private string _steamKey;
     public readonly Dictionary<string,string> FriendsList = new();
+    
     private bool isRunning;
 
     private string LoginFilePath = "";
@@ -279,13 +280,16 @@ internal sealed class SteamLogin : IDisposable
         var jsonResponse = await response.Content.ReadAsStringAsync();
 
         var obj = JsonSerializer.Deserialize<SteamGameHTTPRequest>(jsonResponse);
-        // if (obj != null)
-        // {
-        //     foreach (var singlegame in obj.Response.Games)
-        //     {
-        //         Console.WriteLine(singlegame.Name);
-        //     }
-        // }
+        if (obj == null)
+        {
+            #if DEBUG
+                Console.WriteLine("No Gamelist");
+            #endif
+            return;
+        }
+
+        
+        WeakReferenceMessenger.Default.Send(new ReceiveGameList(obj.Response.Games));
     }
     
 

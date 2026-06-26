@@ -14,6 +14,7 @@ public partial class LoginWindowView : UserControl
     
     private Dictionary<string, string> friendList = new Dictionary<string, string>();
     private string profileName = "";
+    private List<Game> gamesList = new List<Game>();
     
     
     public LoginWindowView()
@@ -28,13 +29,13 @@ public partial class LoginWindowView : UserControl
             win.friendList = mang.NewFriendsList;
 
             #if DEBUG
-            Console.WriteLine("Received FriendsList:");
-            foreach (var keyPair in win.friendList)
-            {   
-                Console.WriteLine($"{keyPair.Key}: {keyPair.Value}");
-            }
+                Console.WriteLine("Received FriendsList:");
+                foreach (var keyPair in win.friendList)
+                {   
+                    Console.WriteLine($"{keyPair.Key}: {keyPair.Value}");
+                }
             #endif
-            if (win.friendList.Count > 0 && !string.IsNullOrEmpty(win.profileName))
+            if (win.friendList.Count > 0 && win.gamesList.Count > 0 && !string.IsNullOrEmpty(win.profileName))
             {
                 WeakReferenceMessenger.Default.Send(new GoToHomePage(true));
             }
@@ -51,7 +52,7 @@ public partial class LoginWindowView : UserControl
                 Console.WriteLine("Received ProfileName:");
                 Console.WriteLine(mang.ProfileName);
             #endif
-            if (win.friendList.Count > 0 && !string.IsNullOrEmpty(win.profileName))
+            if (win.friendList.Count > 0 && win.gamesList.Count > 0 && !string.IsNullOrEmpty(win.profileName))
             {
                 WeakReferenceMessenger.Default.Send(new GoToHomePage(true));
             }
@@ -59,21 +60,27 @@ public partial class LoginWindowView : UserControl
             
         });
         
-        // WeakReferenceMessenger.Default.Register<LoginWindowView, ReceiveGameList>
-        // (this, static (win, mang) =>
-        // {
-        //     win.profileName = mang.ProfileName;
-        //
-        //     Console.WriteLine("Received ProfileName:");
-        //     Console.WriteLine(mang.ProfileName);
-        //     
-        //     if (win.friendList.Count > 0 && !string.IsNullOrEmpty(win.profileName))
-        //     {
-        //         WeakReferenceMessenger.Default.Send(new GoToHomePage(true));
-        //     }
-        //     
-        //     
-        // });
+        WeakReferenceMessenger.Default.Register<LoginWindowView, ReceiveGameList>
+        (this, static (win, mang) =>
+        {
+            win.gamesList = mang.NewGameList;
+            
+            #if DEBUG
+                Console.WriteLine("Received GameList:");
+                Console.WriteLine("Received FriendsList:");
+                foreach (var g in win.gamesList)
+                {   
+                    Console.WriteLine(g.Name);
+                }
+            #endif
+            
+            if (win.friendList.Count > 0 && win.gamesList.Count > 0 && !string.IsNullOrEmpty(win.profileName))
+        {
+            WeakReferenceMessenger.Default.Send(new GoToHomePage(true));
+        }
+            
+            
+        });
         
     }
     
