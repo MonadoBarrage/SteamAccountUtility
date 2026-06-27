@@ -1,8 +1,9 @@
 using System.Collections.Generic;
+using SteamKit2;
 
 namespace SteamAccountUtility.Messages;
 
-public class ReceiveFriendsList(Dictionary<string, string> fl)
+public class ReceiveFriendsList(Dictionary<SteamID, FriendData> fl)
 {
-    public readonly Dictionary<string, string> NewFriendsList = fl;
+    public readonly Dictionary<SteamID, FriendData> NewFriendsList = fl;
 }

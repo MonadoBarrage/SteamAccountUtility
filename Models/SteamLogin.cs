@@ -20,8 +20,8 @@ internal sealed class SteamLogin : IDisposable
     private string _steamKey;
     private string _guardData;
     private string _refreshToken;
-
-    public readonly Dictionary<string, string> FriendsList = new();
+    
+    public readonly Dictionary<SteamID, FriendData> FriendsList = new();
 
     private bool isRunning;
 
@@ -199,11 +199,6 @@ internal sealed class SteamLogin : IDisposable
         await steamFriends.RequestProfileInfo(steamUser.SteamID);
 
         await FetchGameList();
-
-        // at this point, we'd be able to perform actions on Steam
-
-        // for this sample we'll just log off
-        // steamUser.LogOff();
     }
 
     private void OnLoggedOff(SteamUser.LoggedOffCallback callback)
@@ -267,24 +262,38 @@ internal sealed class SteamLogin : IDisposable
 #if DEBUG
             Console.WriteLine("My id: {0}", steamUser.SteamID);
 #endif
+
+            UserData ud = new UserData()
+            {
+                SteamID = callback.FriendID,
+                ProfileName = callback.Name,
+                AvatarHash = callback.AvatarHash,
+                
+            };
             
-            WeakReferenceMessenger.Default.Send(new ReceiveProfileName(callback.Name));
+            WeakReferenceMessenger.Default.Send(new ReceiveUserData(ud));
             return;
         }
 
-        if (FriendsList.ContainsKey(callback.FriendID.ToString()))
+        if (FriendsList.ContainsKey(callback.FriendID))
         {
             return;
         }
 
-        FriendsList.Add(callback.FriendID.ToString(), callback.Name);
+        FriendData fd = new FriendData()
+        {
+            SteamID = callback.FriendID,
+            ProfileName = callback.Name,
+            AvatarHash = callback.AvatarHash,
+        };
+        FriendsList.Add(callback.FriendID, fd);
         ++processedFriends;
         if (processedFriends == NumberOfFriends)
         {
 #if DEBUG
             Console.WriteLine("Received Friends List");
 #endif
-
+            
             WeakReferenceMessenger.Default.Send(new ReceiveFriendsList(FriendsList));
         }
     }

@@ -25,7 +25,7 @@ public partial class LoginWindowViewModel : ViewModelBase
     [ObservableProperty] private string steamKey;
     [ObservableProperty] private string loadingMessage;
     
-    [ObservableProperty] private bool checkForSavedCredentials = true;
+    [ObservableProperty] private bool checkForSavedCredentials;
 
     private string guardData;
     private string accessToken;
@@ -42,11 +42,13 @@ public partial class LoginWindowViewModel : ViewModelBase
         try
         {
             var jsonDetails = _appDirectory.GetCredentials();
+            CheckForSavedCredentials = jsonDetails != new LoginDetails();
             Username = jsonDetails.Username;
             Password =  jsonDetails.Password;
             SteamKey = jsonDetails.SteamKey;
             guardData = jsonDetails.GuardData;
             accessToken = jsonDetails.AccessToken;
+            
         }
         catch (Exception e)
         {
@@ -87,9 +89,9 @@ public partial class LoginWindowViewModel : ViewModelBase
     public async Task LoginToSteamAsync()
     {
         
-        if (string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password))
+        if (string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password) || string.IsNullOrEmpty(SteamKey))
         {
-            LoadingMessage = "Please enter a username and password";
+            LoadingMessage = "Please enter a username, password, and steam key";
             return;
         }
         LoadingMessage = "Logging in...";
@@ -100,6 +102,10 @@ public partial class LoginWindowViewModel : ViewModelBase
             {
                 Username = Username, Password = Password, SteamKey = SteamKey, GuardData = guardData, AccessToken =  accessToken
             });
+        }
+        else
+        {
+            _appDirectory.SaveCredentials(new LoginDetails());
         }
         
         _steamLogin.GetCredentials(Username, Password, SteamKey, guardData, accessToken);

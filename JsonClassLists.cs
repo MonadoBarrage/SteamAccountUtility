@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
+using SteamKit2;
 
 namespace SteamAccountUtility;
 
@@ -74,13 +75,34 @@ public class Game
 
 public class UserData
 {
+    public SteamID SteamID;
     public string ProfileName;
+    public byte[]? AvatarHash;
+    public string LastPlayed;
     
+    public bool validateData()
+    {
+        if (!SteamID.Equals(new SteamID()) && 
+            !string.IsNullOrEmpty(ProfileName)
+           ) return true;
+        return false;
+    }
+
 }
 
 public class FriendData
 {
-    
+    public SteamID SteamID;
+    public string ProfileName;
+    public byte[]? AvatarHash;
+
+    public bool validateData()
+    {
+        if (!SteamID.Equals(new SteamID()) && 
+            !string.IsNullOrEmpty(ProfileName)
+            ) return true;
+        return false;
+    }
 }
 public class RefreshTokenJson
 {

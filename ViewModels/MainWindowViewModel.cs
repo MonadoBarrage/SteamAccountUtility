@@ -18,7 +18,7 @@ public partial class MainWindowViewModel : ViewModelBase
          WeakReferenceMessenger.Default.Register<MainWindowViewModel, GoToHomePage>
          (this, (s, p) =>
          {
-            s.CurrentPage = new HomeWindowViewModel(p.ProfileName,p.UserGameList,p.UserFriendList);    
+            s.CurrentPage = new HomeWindowViewModel(p.User,p.UserGameList,p.UserFriendList);    
          });
     }
 

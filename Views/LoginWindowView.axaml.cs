@@ -5,6 +5,7 @@ using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using CommunityToolkit.Mvvm.Messaging;
 using SteamAccountUtility.Messages;
+using SteamKit2;
 using Tmds.DBus.Protocol;
 
 namespace SteamAccountUtility.Views;
@@ -12,8 +13,8 @@ namespace SteamAccountUtility.Views;
 public partial class LoginWindowView : UserControl
 {
     
-    private Dictionary<string, string> friendList;
-    private string profileName;
+    private Dictionary<SteamID, FriendData> friendList;
+    private UserData userData;
     private List<Game> gamesList;
     
     
@@ -21,8 +22,8 @@ public partial class LoginWindowView : UserControl
     {
         InitializeComponent();
         
-        friendList = new Dictionary<string, string>();
-        profileName = "";
+        friendList = new Dictionary<SteamID, FriendData>();
+        userData = new UserData();
         gamesList = new List<Game>();
         
         WeakReferenceMessenger.Default.Register<LoginWindowView, ReceiveFriendsList>
@@ -37,31 +38,22 @@ public partial class LoginWindowView : UserControl
                     Console.WriteLine($"{keyPair.Key}: {keyPair.Value}");
                 }
             #endif
-            if (win.friendList.Count > 0 && win.gamesList.Count > 0 && !string.IsNullOrEmpty(win.profileName))
-            {
-                WeakReferenceMessenger.Default.Send(new GoToHomePage(true,
-                win.profileName,win.gamesList,win.friendList
-                    ));
-            }
+            
+            win.CheckIfAllDataFetched();
             
             
         });
         
-        WeakReferenceMessenger.Default.Register<LoginWindowView, ReceiveProfileName>
+        WeakReferenceMessenger.Default.Register<LoginWindowView, ReceiveUserData>
         (this, static (win, mang) =>
         {
-            win.profileName = mang.ProfileName;
+            win.userData = mang.User;
 
             #if DEBUG
                 Console.WriteLine("Received ProfileName:");
-                Console.WriteLine(mang.ProfileName);
+                Console.WriteLine(mang.User.ProfileName);
             #endif
-            if (win.friendList.Count > 0 && win.gamesList.Count > 0 && !string.IsNullOrEmpty(win.profileName))
-            {
-                WeakReferenceMessenger.Default.Send(new GoToHomePage(true,
-                    win.profileName,win.gamesList,win.friendList
-                ));
-            }
+            win.CheckIfAllDataFetched();
             
             
         });
@@ -79,17 +71,19 @@ public partial class LoginWindowView : UserControl
                     Console.WriteLine(g.Name);
                 }
             #endif
-            
-            if (win.friendList.Count > 0 && win.gamesList.Count > 0 && !string.IsNullOrEmpty(win.profileName))
-        {
-            WeakReferenceMessenger.Default.Send(new GoToHomePage(true,
-                win.profileName,win.gamesList,win.friendList
-            ));        }
-            
+            win.CheckIfAllDataFetched();
             
         });
         
     }
-    
+
+
+    public void CheckIfAllDataFetched()
+    {
+        if (friendList.Count > 0 && gamesList.Count > 0 && userData.validateData())
+        {
+            WeakReferenceMessenger.Default.Send(new GoToHomePage(true, userData, gamesList, friendList));
+        }
+    }
     
 }
