@@ -3,6 +3,24 @@ using System.Text.Json.Serialization;
 
 namespace SteamAccountUtility;
 
+public class LoginDetails
+{
+    [JsonPropertyName("username")]
+    public string Username { get; set; }
+    
+    [JsonPropertyName("password")]
+    public string Password { get; set; }
+    
+    [JsonPropertyName("steamKey")]
+    public string SteamKey { get; set; }
+    
+    [JsonPropertyName("guardData")]
+    public string GuardData { get; set; }
+    
+    [JsonPropertyName("accessToken")]
+    public string AccessToken { get; set; }
+}
+
 public class SteamGameHTTPRequest
 {
     [JsonPropertyName("response")]
@@ -53,3 +71,53 @@ public class Game
     [JsonPropertyName("playtime_disconnected")]
     public int PlaytimeDisconnected { get; set; }
 }
+
+public class UserData
+{
+    public string ProfileName;
+    
+}
+
+public class FriendData
+{
+    
+}
+public class RefreshTokenJson
+{
+    
+    [JsonPropertyName("iss")]
+    public string iss { get; set; }
+    
+    [JsonPropertyName("sub")]
+    public string sub { get; set; }
+
+    [JsonPropertyName("aud")]
+    public List<string> aud { get; set; }
+    
+    [JsonPropertyName("exp")]
+    public long exp { get; set; }
+
+    [JsonPropertyName("nbf")]
+    public long nbf { get; set; }
+    
+    [JsonPropertyName("iat")]
+    public long iat { get; set; }
+
+    [JsonPropertyName("jti")]
+    public string jti { get; set; }
+    
+    [JsonPropertyName("oat")]
+    public long oat { get; set; }
+    
+    [JsonPropertyName("per")]
+    public long per { get; set; }
+    
+    [JsonPropertyName("ip_subject")]
+    public string ip_subject { get; set; }
+    
+    [JsonPropertyName("ip_confirmer")]
+    public string ip_confirmer { get; set; }
+
+}
+
+

@@ -24,8 +24,4 @@
     <PackageReference Include="Duende.IdentityModel" Version="8.1.0" />
     <PackageReference Include="SteamKit2" Version="3.4.0" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="RecordsAndStructs\" />
-  </ItemGroup>
 </Project>

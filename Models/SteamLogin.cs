@@ -14,14 +14,15 @@ using SteamAccountUtility;
 
 internal sealed class SteamLogin : IDisposable
 {
-    
-    
     private string _password;
     private string _previouslyStoredGuardData;
     private string _username;
     private string _steamKey;
-    public readonly Dictionary<string,string> FriendsList = new();
-    
+    private string _guardData;
+    private string _refreshToken;
+
+    public readonly Dictionary<string, string> FriendsList = new();
+
     private bool isRunning;
 
     private string LoginFilePath = "";
@@ -31,29 +32,32 @@ internal sealed class SteamLogin : IDisposable
     private SteamUser steamUser;
     private SteamUserStats steamUserStats;
     private SteamApps steamApps;
-    
+
 
     private int NumberOfFriends;
     private int processedFriends = 0;
+
     private HttpClient httpClient = new()
     {
         BaseAddress = new Uri("https://api.steampowered.com")
     };
 
-    
+
     public void Dispose()
     {
         throw new NotImplementedException();
     }
 
-    public void GetCredentials(string username, string password, string steamkey)
+    public void GetCredentials(string username, string password, string steamkey, string guarddata, string accesstoken)
     {
         _username = username;
         _password = password;
         _steamKey = steamkey;
+        _guardData = guarddata;
+        _refreshToken = accesstoken;
     }
-    
-    
+
+
     public async Task InitializeClient()
     {
         steamClient = new SteamClient();
@@ -64,7 +68,7 @@ internal sealed class SteamLogin : IDisposable
         steamFriends = steamClient.GetHandler<SteamFriends>();
         steamUserStats = steamClient.GetHandler<SteamUserStats>();
         steamApps = steamClient.GetHandler<SteamApps>();
-        
+
         manager.Subscribe<SteamClient.ConnectedCallback>(OnConnected);
         manager.Subscribe<SteamClient.DisconnectedCallback>(OnDisconnected);
 
@@ -74,14 +78,14 @@ internal sealed class SteamLogin : IDisposable
         manager.Subscribe<SteamUser.AccountInfoCallback>(OnAccountInfo);
         manager.Subscribe<SteamFriends.FriendsListCallback>(OnFriendsList);
         manager.Subscribe<SteamFriends.PersonaStateCallback>(OnPersonaState);
-        
-        
+
+
         isRunning = true;
 
-        #if DEBUG
+#if DEBUG
         Console.WriteLine("Connecting to Steam...");
-        #endif
-        
+#endif
+
         steamClient.Connect();
 
         while (isRunning)
@@ -94,14 +98,35 @@ internal sealed class SteamLogin : IDisposable
     {
         try
         {
-            #if DEBUG
-                Console.WriteLine("Connected to Steam! Logging in '{0}'...", _username);
-            #endif
-            
-            var shouldRememberPassword = true;
+#if DEBUG
+            Console.WriteLine("Connected to Steam! Logging in '{0}'...", _username);
+#endif
 
-            WeakReferenceMessenger.Default.Send(new UpdateLoginMessage("Use the Steam Guard App to approve this login"));
+            AuthPollResult pollResponse;
+            var shouldRememberPassword = true;
             
+            if (!string.IsNullOrEmpty(_refreshToken))
+            {
+                if(ParseRefreshToken(_refreshToken)){
+                    // ParseJsonWebToken(pollResponse.RefreshToken, nameof(pollResponse.RefreshToken));
+                    WeakReferenceMessenger.Default.Send(new SendGuardDataAndAccessToken(_previouslyStoredGuardData,
+                        _refreshToken));
+                    Console.WriteLine("BOOOOB");
+                    steamUser.LogOn(new SteamUser.LogOnDetails
+                    {
+                        Username = _username,
+                        AccessToken = _refreshToken,
+                        ShouldRememberPassword =
+                            shouldRememberPassword // If you set IsPersistentSession to true, this also must be set to true for it to work correctly
+                    });
+                    return;
+                }
+            }
+
+
+            WeakReferenceMessenger.Default.Send(
+                new UpdateLoginMessage("Use the Steam Guard App to approve this login"));
+
             var authSession = await steamClient.Authentication.BeginAuthSessionViaCredentialsAsync(
                 new AuthSessionDetails
                 {
@@ -111,6 +136,7 @@ internal sealed class SteamLogin : IDisposable
 
                     GuardData = _previouslyStoredGuardData,
 
+
                     // <see cref="UserConsoleAuthenticator"/> is the default authenticator implemention provided by SteamKit
                     // for ease of use which blocks the thread and asks for user input to enter the code.
                     // However, if you require special handling (e.g. you have the TOTP secret and can generate codes on the fly),
@@ -118,13 +144,16 @@ internal sealed class SteamLogin : IDisposable
                     Authenticator = new UserConsoleAuthenticator()
                 });
 
-            var pollResponse = await authSession.PollingWaitForResultAsync();
+            pollResponse = await authSession.PollingWaitForResultAsync();
 
             if (pollResponse.NewGuardData != null)
                 // When using certain two factor methods (such as email 2fa), guard data may be provided by Steam
                 // for use in future authentication sessions to avoid triggering 2FA again (this works similarly to the old sentry file system).
                 // Do note that this guard data is also a JWT token and has an expiration date.
                 _previouslyStoredGuardData = pollResponse.NewGuardData;
+
+            WeakReferenceMessenger.Default.Send(new SendGuardDataAndAccessToken(_previouslyStoredGuardData,
+                pollResponse.RefreshToken));
 
             // Logon to Steam with the access token we have received
             // Note that we are using RefreshToken for logging on here
@@ -142,15 +171,14 @@ internal sealed class SteamLogin : IDisposable
         }
         catch (Exception e)
         {
-            
         }
     }
 
     private void OnDisconnected(SteamClient.DisconnectedCallback callback)
     {
-        #if DEBUG
-            Console.WriteLine("Disconnected from Steam");
-        #endif
+#if DEBUG
+        Console.WriteLine("Disconnected from Steam");
+#endif
         isRunning = false;
     }
 
@@ -158,16 +186,16 @@ internal sealed class SteamLogin : IDisposable
     {
         if (callback.Result != EResult.OK)
         {
-            #if DEBUG
-                Console.WriteLine("Unable to logon to Steam: {0} / {1}", callback.Result, callback.ExtendedResult);
-            #endif
+#if DEBUG
+            Console.WriteLine("Unable to logon to Steam: {0} / {1}", callback.Result, callback.ExtendedResult);
+#endif
             isRunning = false;
             return;
         }
-        
-        #if DEBUG
+
+#if DEBUG
         Console.WriteLine("Successfully logged on!");
-        #endif
+#endif
         await steamFriends.RequestProfileInfo(steamUser.SteamID);
 
         await FetchGameList();
@@ -180,9 +208,9 @@ internal sealed class SteamLogin : IDisposable
 
     private void OnLoggedOff(SteamUser.LoggedOffCallback callback)
     {
-        #if DEBUG
+#if DEBUG
         Console.WriteLine("Logged off of Steam: {0}", callback.Result);
-        #endif
+#endif
     }
 
     private void OnAccountInfo(SteamUser.AccountInfoCallback callback)
@@ -191,7 +219,7 @@ internal sealed class SteamLogin : IDisposable
         // this callback is posted shortly after a successful logon
 
         // at this point, we can go online on friends, so lets do that0
-        
+
         steamFriends.SetPersonaState(EPersonaState.Online);
     }
 
@@ -199,27 +227,26 @@ internal sealed class SteamLogin : IDisposable
     private async void OnFriendsList(SteamFriends.FriendsListCallback callback)
     {
         // at this point, the client has received it's friends list
-        
+
         NumberOfFriends = steamFriends.GetFriendCount();
 
-        #if DEBUG
+#if DEBUG
         Console.WriteLine("We have {0} friends", NumberOfFriends);
-        #endif
+#endif
         for (var x = 0; x < NumberOfFriends; x++)
         {
             // steamids identify objects that exist on the steam network, such as friends, as an example
             var steamIdFriend = steamFriends.GetFriendByIndex(x);
             if (steamIdFriend == steamUser.SteamID) continue;
             var friendName = await steamFriends.RequestProfileInfo(steamIdFriend);
-            
+
             // we'll just display the STEAM_ rendered version
             // Console.WriteLine( "Friend: {0}", steamIdFriend.Render() );
             // FriendsList.Add(steamFriends.RequestProfileInfo(steamIdFriend).ToString());
             // Console.WriteLine( steamIdFriend. );
         }
-        
-        
-        
+
+
         // // we can also iterate over our friendslist to accept or decline any pending invites
         //
         // foreach ( var friend in callback.FriendList )
@@ -237,9 +264,10 @@ internal sealed class SteamLogin : IDisposable
         // Console.WriteLine( "PersonaState: {0}", callback.Name );
         if (callback.FriendID == steamUser.SteamID)
         {
-            #if DEBUG
-                Console.WriteLine("My id: {0}",steamUser.SteamID);
-            #endif
+#if DEBUG
+            Console.WriteLine("My id: {0}", steamUser.SteamID);
+#endif
+            
             WeakReferenceMessenger.Default.Send(new ReceiveProfileName(callback.Name));
             return;
         }
@@ -248,14 +276,15 @@ internal sealed class SteamLogin : IDisposable
         {
             return;
         }
-        FriendsList.Add(callback.FriendID.ToString(),callback.Name);
+
+        FriendsList.Add(callback.FriendID.ToString(), callback.Name);
         ++processedFriends;
         if (processedFriends == NumberOfFriends)
         {
-            #if DEBUG
-                Console.WriteLine("Received Friends List");
-            #endif
-            
+#if DEBUG
+            Console.WriteLine("Received Friends List");
+#endif
+
             WeakReferenceMessenger.Default.Send(new ReceiveFriendsList(FriendsList));
         }
     }
@@ -268,35 +297,64 @@ internal sealed class SteamLogin : IDisposable
                           "&steamid=" +
                           sid.ConvertToUInt64() +
                           "&include_appinfo=1";
-        #if DEBUG
+#if DEBUG
         Console.WriteLine($"Fetching {requestLink}");
-        #endif
-        
+#endif
+
         using HttpResponseMessage response = await httpClient.GetAsync(requestLink);
-        
+
         response.EnsureSuccessStatusCode();
-        
-        
+
+
         var jsonResponse = await response.Content.ReadAsStringAsync();
 
         var obj = JsonSerializer.Deserialize<SteamGameHTTPRequest>(jsonResponse);
         if (obj == null)
         {
-            #if DEBUG
-                Console.WriteLine("No Gamelist");
-            #endif
+#if DEBUG
+            Console.WriteLine("No Gamelist");
+#endif
             return;
         }
 
-        
+
         WeakReferenceMessenger.Default.Send(new ReceiveGameList(obj.Response.Games));
     }
-    
 
 
+    private bool CheckUnixTimestamp(long expirationTimestamp)
+    {
+        long nowTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+
+        if (nowTime < (expirationTimestamp - 604800))
+        {
+            return true;
+        }
+
+        return false;
+    }
 
 
+    private bool ParseRefreshToken(string token)
+    {
+        var tokenComponents = token.Split('.');
 
+        var base64 = tokenComponents[1].Replace('-', '+').Replace('_', '/');
+
+        if (base64.Length % 4 != 0) base64 += new string('=', 4 - base64.Length % 4);
+
+        var payloadBytes = Convert.FromBase64String(base64);
+        
+        var newTokenJson = JsonSerializer.Deserialize<RefreshTokenJson>(payloadBytes);
+        
+        #if DEBUG
+            Console.WriteLine(JsonSerializer.Serialize(newTokenJson));
+        #endif
+        
+        if (newTokenJson == null) return false;
+        
+        return CheckUnixTimestamp(newTokenJson.exp);
+    }
 
 
     // This is simply showing how to parse JWT, this is not required to login to Steam

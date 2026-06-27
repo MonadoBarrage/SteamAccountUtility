@@ -12,16 +12,18 @@ namespace SteamAccountUtility.Views;
 public partial class LoginWindowView : UserControl
 {
     
-    private Dictionary<string, string> friendList = new Dictionary<string, string>();
-    private string profileName = "";
-    private List<Game> gamesList = new List<Game>();
+    private Dictionary<string, string> friendList;
+    private string profileName;
+    private List<Game> gamesList;
     
     
     public LoginWindowView()
     {
         InitializeComponent();
         
-        
+        friendList = new Dictionary<string, string>();
+        profileName = "";
+        gamesList = new List<Game>();
         
         WeakReferenceMessenger.Default.Register<LoginWindowView, ReceiveFriendsList>
         (this, static (win, mang) =>
@@ -37,7 +39,9 @@ public partial class LoginWindowView : UserControl
             #endif
             if (win.friendList.Count > 0 && win.gamesList.Count > 0 && !string.IsNullOrEmpty(win.profileName))
             {
-                WeakReferenceMessenger.Default.Send(new GoToHomePage(true));
+                WeakReferenceMessenger.Default.Send(new GoToHomePage(true,
+                win.profileName,win.gamesList,win.friendList
+                    ));
             }
             
             
@@ -54,7 +58,9 @@ public partial class LoginWindowView : UserControl
             #endif
             if (win.friendList.Count > 0 && win.gamesList.Count > 0 && !string.IsNullOrEmpty(win.profileName))
             {
-                WeakReferenceMessenger.Default.Send(new GoToHomePage(true));
+                WeakReferenceMessenger.Default.Send(new GoToHomePage(true,
+                    win.profileName,win.gamesList,win.friendList
+                ));
             }
             
             
@@ -76,8 +82,9 @@ public partial class LoginWindowView : UserControl
             
             if (win.friendList.Count > 0 && win.gamesList.Count > 0 && !string.IsNullOrEmpty(win.profileName))
         {
-            WeakReferenceMessenger.Default.Send(new GoToHomePage(true));
-        }
+            WeakReferenceMessenger.Default.Send(new GoToHomePage(true,
+                win.profileName,win.gamesList,win.friendList
+            ));        }
             
             
         });

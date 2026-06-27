@@ -8,6 +8,6 @@
              x:DataType="vm:HomeWindowViewModel">
     <StackPanel>
         <TextBlock Text="Boom"/>
-        <TextBlock Text="{Binding AccountName}"/>
+        <TextBlock Text="{Binding ProfileName}"/>
     </StackPanel>
 </UserControl>
