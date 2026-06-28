@@ -6,8 +6,22 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="SteamAccountUtility.Views.HomeWindowView"
              x:DataType="vm:HomeWindowViewModel">
-    <StackPanel>
-        <TextBlock Text="Boom"/>
-        <TextBlock Text="{Binding ProfileName}"/>
-    </StackPanel>
+    <DockPanel>
+        
+        <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="0 40 0 0">
+            <StackPanel >
+                <Border CornerRadius="10" ClipToBounds="True" Background="#7FFF22DD">
+                    <!-- <Button Command="{Binding YayCommand}"> -->
+                    <Image Width="200" Height="200"
+                           Stretch="Uniform"
+                           Source="{Binding CurrentUser.AvatarIcon}" />
+                    <!-- </Button> -->
+                </Border>
+                <TextBlock Text="{Binding CurrentUser.ProfileName}"/>
+            </StackPanel>
+        </ScrollViewer>
+        <Button Command="{Binding NavigateToFriendPageCommand}" Content="Go to Friends"/>
+        <Button Command="{Binding NavigateToGamePageCommand}" Content="Go to Games"/>
+    </DockPanel>
+
 </UserControl>

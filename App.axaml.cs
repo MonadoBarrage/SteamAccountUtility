@@ -6,7 +6,6 @@ using System.Linq;
 using Avalonia.Markup.Xaml;
 using SteamAccountUtility.ViewModels;
 using SteamAccountUtility.Views;
-using SteamAccountUtility;
 
 namespace SteamAccountUtility;
 

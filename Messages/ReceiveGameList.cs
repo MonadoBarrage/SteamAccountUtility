@@ -1,9 +1,8 @@
 using System.Collections.Generic;
-using SteamAccountUtility;
 namespace SteamAccountUtility.Messages;
 
-public class ReceiveGameList(List<Game> g)
+public class ReceiveGameList(List<GameData> g)
 {
-    public readonly List<Game> NewGameList = g;
+    public readonly List<GameData> NewGameList = g;
 
 }

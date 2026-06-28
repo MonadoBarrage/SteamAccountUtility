@@ -1,7 +1,4 @@
 using Avalonia.Controls;
-using CommunityToolkit.Mvvm.Messaging;
-using SteamAccountUtility.Messages;
-using SteamAccountUtility.ViewModels;
 
 namespace SteamAccountUtility.Views;
 

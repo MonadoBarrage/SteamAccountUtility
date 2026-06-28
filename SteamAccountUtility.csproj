@@ -24,4 +24,35 @@
     <PackageReference Include="Duende.IdentityModel" Version="8.1.0" />
     <PackageReference Include="SteamKit2" Version="3.4.0" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Views\Main\LoginWindowView.axaml.cs">
+      <DependentUpon>LoginWindowView.axaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Main\HomeWindowView.axaml.cs">
+      <DependentUpon>HomeWindowView.axaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Main\GameLibraryViewModel.axaml.cs">
+      <DependentUpon>GameLibraryViewModel.axaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\MainWindow.axaml.cs">
+      <DependentUpon>MainWindow.axaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Secondary\GameView.axaml.cs">
+      <DependentUpon>GameView.axaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\AuxiliaryFriendView.axaml.cs">
+      <DependentUpon>FriendView.axaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\AuxiliaryGameView.axaml.cs">
+      <DependentUpon>GameView.axaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+  </ItemGroup>
 </Project>

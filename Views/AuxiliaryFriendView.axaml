@@ -1,0 +1,37 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SteamAccountUtility.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="SteamAccountUtility.Views.AuxiliaryFriendView"
+             x:DataType="vm:AuxiliaryFriendViewModel"
+             Width="200">
+    <UserControl.Resources>
+        <DrawingImage x:Key="CoverFallback">
+            <DrawingImage.Drawing>
+                <DrawingGroup >
+                    <GeometryDrawing>
+                        <RectangleGeometry  Rect="-2 -2 28 28" />
+                    </GeometryDrawing>
+                    <GeometryDrawing Brush="White"
+                                     Geometry="{DynamicResource person_icon}" />
+                </DrawingGroup>
+
+            </DrawingImage.Drawing>
+        </DrawingImage>
+    </UserControl.Resources>
+    
+    <!-- <Button Command="{Binding YayCommand}"> -->
+    <StackPanel Spacing="5" Width="200">
+        <Border CornerRadius="10" ClipToBounds="True" Background="#7FFF22DD">
+            <!-- <Button Command="{Binding YayCommand}"> -->
+            <Image Width="200" Height="200"
+                   Stretch="Uniform"
+                   Source="{Binding Friend.AvatarIcon}" />
+            <!-- </Button> -->
+        </Border>
+        <TextBlock Text="{Binding Friend.ProfileName }"/>
+    </StackPanel>
+    <!-- </Button> -->
+</UserControl>

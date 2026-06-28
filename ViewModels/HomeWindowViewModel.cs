@@ -6,28 +6,29 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using SteamAccountUtility.Messages;
+using SteamAccountUtility.Messages.Navigation;
 using SteamKit2;
 
 namespace SteamAccountUtility.ViewModels;
 
-public partial class HomeWindowViewModel(UserData ud, List<Game> gl, Dictionary<SteamID,FriendData> fl) : ViewModelBase
+public partial class HomeWindowViewModel(AllSteamData allSteamData): ViewModelBase
 {
+    
+    [ObservableProperty] private UserData currentUser = allSteamData.currentUser;
+    [ObservableProperty] private ObservableCollection<AuxiliaryGameViewModel> gameList = allSteamData.gameVM;
+    [ObservableProperty] private ObservableCollection<AuxiliaryFriendViewModel> friendList = allSteamData.friendVM;
 
-    private SteamLogin _steamLogin;
-    
-    [ObservableProperty] private string profileName = ud.ProfileName;
-    [ObservableProperty] private List<Game> gameList = gl;
-    [ObservableProperty] private ObservableCollection<FriendData> friendList = ConvertFriendList(fl);
 
-    
-    
-    public static ObservableCollection<FriendData> ConvertFriendList(Dictionary<SteamID, FriendData> fl)
+
+    [RelayCommand]
+    public void NavigateToFriendPage()
     {
-        ObservableCollection<FriendData> newFriendList = new ObservableCollection<FriendData>();
-        foreach (var val in fl)
-        {
-            newFriendList.Add(val.Value);
-        }
-        return newFriendList;
+        WeakReferenceMessenger.Default.Send(new SendToFriendPage());
+    }
+    
+    [RelayCommand]
+    public void NavigateToGamePage()
+    {
+        WeakReferenceMessenger.Default.Send(new SendToGamePage());
     }
 }

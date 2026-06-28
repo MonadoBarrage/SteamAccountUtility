@@ -1,16 +1,19 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Avalonia;
+using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.Messaging;
+using SteamAccountUtility;
 using SteamAccountUtility.Messages;
 using SteamKit2;
 using SteamKit2.Authentication;
 using SteamKit2.Internal;
-using SteamAccountUtility;
 
 internal sealed class SteamLogin : IDisposable
 {
@@ -21,7 +24,7 @@ internal sealed class SteamLogin : IDisposable
     private string _guardData;
     private string _refreshToken;
     
-    public readonly Dictionary<SteamID, FriendData> FriendsList = new();
+    public readonly ConcurrentDictionary<SteamID, FriendData> FriendsList = new();
 
     private bool isRunning;
 
@@ -36,11 +39,7 @@ internal sealed class SteamLogin : IDisposable
 
     private int NumberOfFriends;
     private int processedFriends = 0;
-
-    private HttpClient httpClient = new()
-    {
-        BaseAddress = new Uri("https://api.steampowered.com")
-    };
+    private HttpClient httpClient = new HttpClient();
 
 
     public void Dispose()
@@ -105,22 +104,21 @@ internal sealed class SteamLogin : IDisposable
             AuthPollResult pollResponse;
             var shouldRememberPassword = true;
             
-            if (!string.IsNullOrEmpty(_refreshToken))
+            if (!string.IsNullOrEmpty(_refreshToken) && ParseRefreshToken(_refreshToken))
             {
-                if(ParseRefreshToken(_refreshToken)){
-                    // ParseJsonWebToken(pollResponse.RefreshToken, nameof(pollResponse.RefreshToken));
-                    WeakReferenceMessenger.Default.Send(new SendGuardDataAndAccessToken(_previouslyStoredGuardData,
-                        _refreshToken));
-                    Console.WriteLine("BOOOOB");
-                    steamUser.LogOn(new SteamUser.LogOnDetails
-                    {
-                        Username = _username,
-                        AccessToken = _refreshToken,
-                        ShouldRememberPassword =
-                            shouldRememberPassword // If you set IsPersistentSession to true, this also must be set to true for it to work correctly
-                    });
-                    return;
-                }
+                
+                WeakReferenceMessenger.Default.Send(new SendGuardDataAndAccessToken(_previouslyStoredGuardData,
+                    _refreshToken));
+                Console.WriteLine("BOOOOB");
+                steamUser.LogOn(new SteamUser.LogOnDetails
+                {
+                    Username = _username,
+                    AccessToken = _refreshToken,
+                    ShouldRememberPassword =
+                        shouldRememberPassword
+                });
+                return;
+                
             }
 
 
@@ -254,7 +252,7 @@ internal sealed class SteamLogin : IDisposable
         // }
     }
 
-    private void OnPersonaState(SteamFriends.PersonaStateCallback callback)
+    private async void OnPersonaState(SteamFriends.PersonaStateCallback callback)
     {
         // Console.WriteLine( "PersonaState: {0}", callback.Name );
         if (callback.FriendID == steamUser.SteamID)
@@ -262,12 +260,19 @@ internal sealed class SteamLogin : IDisposable
 #if DEBUG
             Console.WriteLine("My id: {0}", steamUser.SteamID);
 #endif
+            var userConvertedByteArray = ConvertByteArrayToString(callback?.AvatarHash);
+            var userNewLink = "https://avatars.fastly.steamstatic.com/" 
+                          + userConvertedByteArray 
+                          + "_full.jpg";
+        
+            Bitmap userNewPhoto = await LoadImageAsync(userNewLink);
 
             UserData ud = new UserData()
             {
                 SteamID = callback.FriendID,
                 ProfileName = callback.Name,
                 AvatarHash = callback.AvatarHash,
+                AvatarIcon = userNewPhoto
                 
             };
             
@@ -280,13 +285,22 @@ internal sealed class SteamLogin : IDisposable
             return;
         }
 
+
+        var convertedByteArray = ConvertByteArrayToString(callback?.AvatarHash);
+        var newLink = "https://avatars.fastly.steamstatic.com/" 
+                      + convertedByteArray 
+                      + "_full.jpg";
+        
+        Bitmap newPhoto = await LoadImageAsync(newLink);
+        
         FriendData fd = new FriendData()
         {
             SteamID = callback.FriendID,
             ProfileName = callback.Name,
             AvatarHash = callback.AvatarHash,
+            AvatarIcon = newPhoto
         };
-        FriendsList.Add(callback.FriendID, fd);
+        FriendsList.GetOrAdd(callback.FriendID, fd);
         ++processedFriends;
         if (processedFriends == NumberOfFriends)
         {
@@ -301,7 +315,7 @@ internal sealed class SteamLogin : IDisposable
     private async Task FetchGameList()
     {
         var sid = new SteamKit2.SteamID(steamUser.SteamID);
-        var requestLink = "IPlayerService/GetOwnedGames/v1/?key=" +
+        var requestLink = "https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/?key=" +
                           _steamKey +
                           "&steamid=" +
                           sid.ConvertToUInt64() +
@@ -326,8 +340,21 @@ internal sealed class SteamLogin : IDisposable
             return;
         }
 
+        List<GameData> games = obj.Response.Games;
+        foreach (var g in games)
+        {
+            var newURI = "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/"
+                         + g.AppId
+                         + "/library_600x900.jpg";
+            var newURI2 = "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/"
+                          + g.AppId
+                          + "/"
+                          + g.ImgIconUrl
+                          + "/library_600x900.jpg";
+            g.AppIcon = await LoadImageAsync(newURI, newURI2);
+        }
 
-        WeakReferenceMessenger.Default.Send(new ReceiveGameList(obj.Response.Games));
+        WeakReferenceMessenger.Default.Send(new ReceiveGameList(games));
     }
 
 
@@ -365,6 +392,40 @@ internal sealed class SteamLogin : IDisposable
         return CheckUnixTimestamp(newTokenJson.exp);
     }
 
+    private string ConvertByteArrayToString(byte[]? hash)
+    {
+        
+        return (hash == null ? "" : BitConverter.ToString(hash).Replace("-", "").ToLower());
+    }
+    
+    private async Task<Bitmap?> LoadImageAsync(string? imageUrl, string? secondaryImageUrl = null)
+    {
+        if (string.IsNullOrEmpty(imageUrl)) return null;
+        try
+        {
+            var bytes = await httpClient.GetByteArrayAsync(imageUrl);
+            using var stream = new MemoryStream(bytes);
+            return new Bitmap(stream);
+        }
+        catch (Exception e)
+        {
+            if(string.IsNullOrEmpty(secondaryImageUrl)) return null;
+        }
+
+        try
+        {
+            Console.WriteLine("Attempted new image: {0}",secondaryImageUrl);
+            var bytes = await httpClient.GetByteArrayAsync(secondaryImageUrl);
+            using var stream = new MemoryStream(bytes);
+            return new Bitmap(stream);
+        }
+        catch (Exception e)
+        {
+            return null;
+        }
+
+    }
+    
 
     // This is simply showing how to parse JWT, this is not required to login to Steam
     private void ParseJsonWebToken(string token, string name)

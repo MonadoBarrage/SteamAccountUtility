@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Avalonia;
 using Avalonia.Controls;
@@ -13,18 +14,18 @@ namespace SteamAccountUtility.Views;
 public partial class LoginWindowView : UserControl
 {
     
-    private Dictionary<SteamID, FriendData> friendList;
+    private ConcurrentDictionary<SteamID, FriendData> friendList;
     private UserData userData;
-    private List<Game> gamesList;
+    private List<GameData> gamesList;
     
     
     public LoginWindowView()
     {
         InitializeComponent();
         
-        friendList = new Dictionary<SteamID, FriendData>();
+        friendList = new ConcurrentDictionary<SteamID, FriendData>();
         userData = new UserData();
-        gamesList = new List<Game>();
+        gamesList = new List<GameData>();
         
         WeakReferenceMessenger.Default.Register<LoginWindowView, ReceiveFriendsList>
         (this, static (win, mang) =>
@@ -69,6 +70,7 @@ public partial class LoginWindowView : UserControl
                 foreach (var g in win.gamesList)
                 {   
                     Console.WriteLine(g.Name);
+                    Console.WriteLine(g.ImgIconUrl);
                 }
             #endif
             win.CheckIfAllDataFetched();
