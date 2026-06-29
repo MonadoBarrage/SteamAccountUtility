@@ -11,25 +11,25 @@ namespace SteamAccountUtility;
 public class LoginDetails
 {
     [JsonPropertyName("username")]
-    public string Username { get; set; }
+    public string? Username { get; init; }
     
     [JsonPropertyName("password")]
-    public string Password { get; set; }
+    public string? Password { get; init; }
     
     [JsonPropertyName("steamKey")]
-    public string SteamKey { get; set; }
+    public string? SteamKey { get; init; }
     
     [JsonPropertyName("guardData")]
-    public string GuardData { get; set; }
+    public string? GuardData { get; init; }
     
     [JsonPropertyName("accessToken")]
-    public string AccessToken { get; set; }
+    public string? AccessToken { get; init; }
 }
 
-public class SteamGameHTTPRequest
+public class SteamGameHttpRequest
 {
     [JsonPropertyName("response")]
-    public Response Response { get; set; }
+    public required Response Response { get; init; }
 }
 
 public class Response
@@ -38,7 +38,7 @@ public class Response
     public int GameCount { get; set; }
 
     [JsonPropertyName("games")]
-    public List<GameData> Games { get; set; }
+    public required List<GameData> Games { get; set; }
 }
 
 public class GameData
@@ -54,7 +54,7 @@ public class GameData
         PlaytimeLinuxForever = -1;
         PlaytimeDeckForever = -1;
         RtimeLastPlayed = -1;
-        ContentDescriptorIds = new List<int>();
+        ContentDescriptorIds = [];
         PlaytimeDeckForever = -1;
     }
     
@@ -70,7 +70,6 @@ public class GameData
     [JsonPropertyName("playtime_forever")]
     public int PlaytimeForever { get; set; }
     
-
     [JsonPropertyName("playtime_windows_forever")]
     public int PlaytimeWindowsForever { get; set; }
 
@@ -94,7 +93,7 @@ public class GameData
 
     public Bitmap? AppIcon { get; set; }
     
-    public void printAll()
+    public void PrintAll()
     {
         Console.WriteLine("appid: {0}",AppId);
         Console.WriteLine("name: {0}",Name);
@@ -118,22 +117,21 @@ public class GameData
 
 public class UserData
 {
-    public SteamID SteamID { get; set; }
-    public string ProfileName { get; set; }
+    public SteamID? SteamID { get; set; }
+    public string? ProfileName { get; set; }
     public byte[]? AvatarHash { get; set; }
     
     public Bitmap? AvatarIcon { get; set; }
-    public string LastPlayed { get; set; }
+    public string? LastPlayed { get; set; }
     
-    public bool validateData()
+    public bool ValidateData()
     {
-        if (!SteamID.Equals(new SteamID()) && 
-            !string.IsNullOrEmpty(ProfileName)
-           ) return true;
-        return false;
+        return SteamID != null 
+               && !SteamID.Equals(new SteamID()) 
+               && !string.IsNullOrEmpty(ProfileName);
     }
 
-    public void printAll()
+    public void PrintAll()
     {
         Console.WriteLine("SteamID: {0}",SteamID);
         Console.WriteLine("ProfileName: {0}",ProfileName);
@@ -146,20 +144,20 @@ public class UserData
 
 public class FriendData
 {
-    public SteamID SteamID { get; set; }
-    public string ProfileName { get; set; }
+    public required SteamID SteamID { get; set; }
+    public required string ProfileName { get; set; }
     public byte[]? AvatarHash { get; set; }
     
     public Bitmap? AvatarIcon { get; set; }
 
-    public bool validateData()
+    public bool ValidateData()
     {
         if (!SteamID.Equals(new SteamID()) && 
             !string.IsNullOrEmpty(ProfileName)
             ) return true;
         return false;
     }
-    public void printAll()
+    public void PrintAll()
     {
         Console.WriteLine("SteamID: {0}",SteamID);
         Console.WriteLine("ProfileName: {0}",ProfileName);
@@ -171,46 +169,46 @@ public class RefreshTokenJson
 {
     
     [JsonPropertyName("iss")]
-    public string iss { get; set; }
+    public string? Iss { get; init; }
     
     [JsonPropertyName("sub")]
-    public string sub { get; set; }
+    public string? Sub { get; init; }
 
     [JsonPropertyName("aud")]
-    public List<string> aud { get; set; }
+    public List<string>? Aud { get; init; }
     
     [JsonPropertyName("exp")]
-    public long exp { get; set; }
+    public long? Expiration { get; init; }
 
     [JsonPropertyName("nbf")]
-    public long nbf { get; set; }
+    public long? Nbf { get; init; }
     
     [JsonPropertyName("iat")]
-    public long iat { get; set; }
+    public long? Iat { get; init; }
 
     [JsonPropertyName("jti")]
-    public string jti { get; set; }
+    public string? Jti { get; init; }
     
     [JsonPropertyName("oat")]
-    public long oat { get; set; }
+    public long? Oat { get; init; }
     
     [JsonPropertyName("per")]
-    public long per { get; set; }
+    public long? Per { get; init; }
     
     [JsonPropertyName("ip_subject")]
-    public string ip_subject { get; set; }
+    public string? IpSubject { get; init; }
     
     [JsonPropertyName("ip_confirmer")]
-    public string ip_confirmer { get; set; }
+    public string? IpConfirmer { get; init; }
 
 }
 
 public class AllSteamData
 {
-    public UserData currentUser;
-    public ObservableCollection<FriendData> friends;
-    public ObservableCollection<GameData> games;
-    public ObservableCollection<AuxiliaryFriendViewModel> friendVM;
-    public ObservableCollection<AuxiliaryGameViewModel> gameVM;
+    public  required UserData CurrentUser;
+    public  required ObservableCollection<FriendData> Friends;
+    public  required ObservableCollection<GameData> Games;
+    public  required ObservableCollection<AuxiliaryFriendViewModel> FriendVM;
+    public  required ObservableCollection<AuxiliaryGameViewModel> GameVM;
 }
 

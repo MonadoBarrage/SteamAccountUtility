@@ -1,33 +1,28 @@
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using SteamAccountUtility.Messages;
 using SteamAccountUtility.Messages.Navigation;
-using SteamKit2;
 
 namespace SteamAccountUtility.ViewModels;
 
 public partial class HomeWindowViewModel(AllSteamData allSteamData): ViewModelBase
 {
     
-    [ObservableProperty] private UserData currentUser = allSteamData.currentUser;
-    [ObservableProperty] private ObservableCollection<AuxiliaryGameViewModel> gameList = allSteamData.gameVM;
-    [ObservableProperty] private ObservableCollection<AuxiliaryFriendViewModel> friendList = allSteamData.friendVM;
+    [ObservableProperty] private UserData _currentUser = allSteamData.CurrentUser;
+    [ObservableProperty] private ObservableCollection<AuxiliaryGameViewModel> _gameList = allSteamData.GameVM;
+    [ObservableProperty] private ObservableCollection<AuxiliaryFriendViewModel> _friendList = allSteamData.FriendVM;
 
 
 
     [RelayCommand]
-    public void NavigateToFriendPage()
+    private void NavigateToFriendPage()
     {
         WeakReferenceMessenger.Default.Send(new SendToFriendPage());
     }
     
     [RelayCommand]
-    public void NavigateToGamePage()
+    private void NavigateToGamePage()
     {
         WeakReferenceMessenger.Default.Send(new SendToGamePage());
     }

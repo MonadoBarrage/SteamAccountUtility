@@ -1,8 +1,4 @@
 using System;
-using System.IO;
-using System.Net.Http;
-using System.Threading.Tasks;
-using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 namespace SteamAccountUtility.ViewModels;
@@ -16,7 +12,7 @@ public partial class AuxiliaryFriendViewModel(FriendData fd): ViewModelBase
     private FriendData _friend = fd;
     
     [RelayCommand]
-    public void Yay()
+    private void Yay()
     {
         Console.WriteLine(Friend.ProfileName);
     }

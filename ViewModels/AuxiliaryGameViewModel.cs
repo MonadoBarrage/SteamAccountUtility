@@ -7,12 +7,12 @@ namespace SteamAccountUtility.ViewModels;
 public partial class AuxiliaryGameViewModel(GameData gameData): ViewModelBase
 {
     [ObservableProperty]
-    private GameData? _game = gameData;
+    private GameData _game = gameData;
     
     
     [RelayCommand]
-    public void Yay()
+    private void Yay()
     {
-        Game.printAll();
+        Game.PrintAll();
     }
 }

@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 
@@ -12,23 +11,21 @@ namespace SteamAccountUtility;
  *
  */
 
-public class AppDirectory()
+public class AppDirectory
 {
-    string current_directory = Directory.GetCurrentDirectory();
-
-    private string dataDirectory = Path.Combine(
+    // string current_directory = Directory.GetCurrentDirectory();
+    
+    private const string CredentialsFile = "credentials.json";
+    private readonly string _dataDirectory = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "steamaccountutility", "userdata");
     
-    private string credentialsFile = "credentials.json";
     
-
-
-
+    
     public void SetUpNewDirectory()
     {
-        var newCredFile = Path.Combine(dataDirectory, credentialsFile);
-        Directory.CreateDirectory(dataDirectory);
+        var newCredFile = Path.Combine(_dataDirectory, CredentialsFile);
+        Directory.CreateDirectory(_dataDirectory);
         if (!File.Exists(newCredFile))
         {
             File.Create(newCredFile).Close();
@@ -37,7 +34,7 @@ public class AppDirectory()
 
     public void SaveCredentials(LoginDetails jsonDetails)
     {
-        var storedCredFile = Path.Combine(dataDirectory, credentialsFile);
+        var storedCredFile = Path.Combine(_dataDirectory, CredentialsFile);
         
         string newJsonDetails = JsonSerializer.Serialize(jsonDetails);
         File.WriteAllText(storedCredFile, newJsonDetails);
@@ -45,35 +42,24 @@ public class AppDirectory()
 
     public LoginDetails GetCredentials()
     {
-        var storedCredFile = Path.Combine(dataDirectory, credentialsFile);
-        LoginDetails details = new LoginDetails
-        {
-            Username = "",
-            Password = "",
-            SteamKey = "",
-            GuardData = "",
-            AccessToken = ""
-        };
+        var storedCredFile = Path.Combine(_dataDirectory, CredentialsFile);
+        LoginDetails? details = null;
         
         try
         {
-            string jsonDetails = File.ReadAllText(storedCredFile);
+            var jsonDetails = File.ReadAllText(storedCredFile);
             if (!string.IsNullOrEmpty(jsonDetails))
                 details = JsonSerializer.Deserialize<LoginDetails>(jsonDetails);
         }
         catch (Exception e)
         {
-            details = new LoginDetails
-            {
-                Username = "",
-                Password = "",
-                SteamKey = "",
-                GuardData = "",
-                AccessToken = ""
-            };
+            Console.WriteLine(e);
+            return new LoginDetails();
         }
 
-        return details;
+        
+        return details ?? new LoginDetails();
+
     }
     
     

@@ -1,7 +1,5 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using CommunityToolkit.Mvvm.Messaging.Messages;
-using SteamAccountUtility.ViewModels;
 using SteamKit2;
 
 namespace SteamAccountUtility.Messages;
