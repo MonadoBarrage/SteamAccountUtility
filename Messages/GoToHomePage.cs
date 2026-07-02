@@ -4,10 +4,7 @@ using SteamKit2;
 
 namespace SteamAccountUtility.Messages;
 
-public class GoToHomePage(bool checkIfUserCanEnter, UserData userData, List<GameData> userGameList, ConcurrentDictionary<SteamID, FriendData> userFriendList )
+public class GoToHomePage(AllSteamData steamData)
 {
-    public readonly bool CheckIfUserCanEnter = checkIfUserCanEnter;
-    public readonly UserData User = userData;
-    public readonly List<GameData> UserGameList = userGameList;
-    public readonly ConcurrentDictionary<SteamID, FriendData> UserFriendList = userFriendList;
+    public readonly AllSteamData UserSteamData = steamData;
 }

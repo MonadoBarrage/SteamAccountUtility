@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using SteamAccountUtility.Messages;
 using SteamAccountUtility.Messages.Navigation;
@@ -12,60 +13,58 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private ViewModelBase _currentPage;
     
     [ObservableProperty] private AllSteamData? _allSteamData;
-    
-    
+
+    [ObservableProperty] private bool _isBarVisible;
     
     
     public MainWindowViewModel()
     {
+        _isBarVisible = false;
         CurrentPage = new LoginWindowViewModel();
-         WeakReferenceMessenger.Default.Register<MainWindowViewModel, GoToHomePage>
-         (this, (s, p) =>
-         {
-             var friendViewModels = new ObservableCollection<AuxiliaryFriendViewModel>();
-             var gameViewModels = new ObservableCollection<AuxiliaryGameViewModel>();
-             foreach (var f in p.UserFriendList.Values)
-             {
-                 friendViewModels.Add(new AuxiliaryFriendViewModel(f));
-             }
-
-             foreach (var g in p.UserGameList)
-             {
-                 gameViewModels.Add(new AuxiliaryGameViewModel(g));
-             }
-             
-             _allSteamData = new AllSteamData()
-             {
-                 CurrentUser = p.User,
-                 Friends = new ObservableCollection<FriendData>(p.UserFriendList.Values),
-                 Games = new ObservableCollection<GameData>(p.UserGameList),
-                 FriendVM = friendViewModels,
-                 GameVM =  gameViewModels
-                 
-             };
-             s.CurrentPage = new HomeWindowViewModel(_allSteamData);    
-         });
          
-         WeakReferenceMessenger.Default.Register<MainWindowViewModel, SendToFriendPage>
-         (this, (s, _) =>
-         {
-             if (_allSteamData != null) 
-                s.CurrentPage = new FriendListViewModel(_allSteamData.FriendVM);    
-         });
-         
-         WeakReferenceMessenger.Default.Register<MainWindowViewModel, SendToGamePage>
-         (this, (s, _) =>
-         {
-             if (_allSteamData != null) 
-                s.CurrentPage = new GameLibraryViewModel(_allSteamData.GameVM);    
-         });
-         
-         
+        
+        WeakReferenceMessenger.Default.Register<MainWindowViewModel, GoToHomePage>
+        (this, (s, mang) =>
+        {
+            s.AllSteamData = mang.UserSteamData;
+            s.IsBarVisible = true;
+            s.CurrentPage = new HomeWindowViewModel(s.AllSteamData);
+        });
          
     }
 
-
+    [RelayCommand]
+    private void GoToHomePage()
+    {
+        if(AllSteamData != null)
+            CurrentPage = new HomeWindowViewModel(AllSteamData);
+    }
+    [RelayCommand]
+    private void GoToGameLibraryPage()
+    {
+        if(AllSteamData != null)
+            CurrentPage = new GameLibraryViewModel(AllSteamData.GameVM);
+    }
+    [RelayCommand]
+    private void GoToFriendsPage()
+    {
+        if(AllSteamData != null)
+            CurrentPage = new FriendListViewModel(AllSteamData.FriendVM);
+    }
+    [RelayCommand]
+    private void GoToGameRandomizerPage()
+    {
+        if(AllSteamData != null)
+            CurrentPage = new GameRandomizerViewModel(AllSteamData.GameVM);
+    }
     
+
+
+    [RelayCommand]
+    private void ChangeBool()
+    {
+        IsBarVisible = !IsBarVisible;
+    }
     
     
 }

@@ -11,16 +11,42 @@
         TransparencyLevelHint="AcrylicBlur"
         Background="White">
 
-    <Design.DataContext>
-        <!-- This only sets the DataContext for the previewer in an IDE,
-             to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
-        <vm:MainWindowViewModel/>
-    </Design.DataContext>
+
 
     <!-- <TextBlock Text="{Binding Greeting}" HorizontalAlignment="Center" VerticalAlignment="Center"/> -->
 
-    <Panel>
+    <DockPanel>
+        <Border DockPanel.Dock="Top" Background="SteelBlue">
+        <CommandBar Background="Transparent" HorizontalAlignment="Center" IsVisible="{Binding IsBarVisible }">
+            
+            <CommandBar.PrimaryCommands>
+                <CommandBarButton Label="Home" 
+                                  Command="{Binding GoToHomePageCommand}">
+                    <!-- <CommandBarButton.Icon> -->
+                    <!--     <PathIcon Data="{StaticResource AddIcon}" /> -->
+                    <!-- </CommandBarButton.Icon> -->
+                </CommandBarButton >
+                <CommandBarButton Label="Games" 
+                                  Command="{Binding GoToGameLibraryPageCommand}" >
+                    <!-- <CommandBarButton.Icon> -->
+                    <!--     <PathIcon Data="{StaticResource EditIcon}" /> -->
+                    <!-- </CommandBarButton.Icon> -->
+                </CommandBarButton>
+                <CommandBarButton Label="Friends"
+                                  Command="{Binding GoToFriendsPageCommand}">
+                    <!-- <CommandBarButton.Icon> -->
+                    <!--     <PathIcon Data="{StaticResource DeleteIcon}" /> -->
+                    <!-- </CommandBarButton.Icon> -->
+                </CommandBarButton>
+                <CommandBarButton Label="Randomizer"
+                                  Command="{Binding GoToGameRandomizerPageCommand}">
+                    
+                </CommandBarButton>
+            </CommandBar.PrimaryCommands>
+        </CommandBar>
+        </Border>
+        <!-- <Button Command="{Binding ChangeBoolCommand}"> BOom</Button> -->
         <TransitioningContentControl Content="{Binding CurrentPage}"/>
-    </Panel>
+    </DockPanel>
     
 </Window>

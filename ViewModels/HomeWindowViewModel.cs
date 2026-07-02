@@ -26,4 +26,10 @@ public partial class HomeWindowViewModel(AllSteamData allSteamData): ViewModelBa
     {
         WeakReferenceMessenger.Default.Send(new SendToGamePage());
     }
+    
+    [RelayCommand]
+    private void NavigateToGameRandomizerPage()
+    {
+        WeakReferenceMessenger.Default.Send(new SendToGameRandomizerPage());
+    }
 }

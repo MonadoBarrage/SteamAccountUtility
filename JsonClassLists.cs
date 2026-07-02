@@ -13,8 +13,8 @@ public class LoginDetails
     [JsonPropertyName("username")]
     public string? Username { get; init; }
     
-    [JsonPropertyName("password")]
-    public string? Password { get; init; }
+    // [JsonPropertyName("password")]
+    // public string? Password { get; init; }
     
     [JsonPropertyName("steamKey")]
     public string? SteamKey { get; init; }

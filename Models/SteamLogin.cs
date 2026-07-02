@@ -50,7 +50,7 @@ internal sealed class SteamLogin : IDisposable
     }
     
 
-    public async Task InitializeClient()
+    public async Task InitializeClient(bool useAutoLogin = false)
     {
         _steamClient = new SteamClient();
 
@@ -97,7 +97,7 @@ internal sealed class SteamLogin : IDisposable
             if (!string.IsNullOrEmpty(_refreshToken) && ParseRefreshToken(_refreshToken))
             {
                 
-                WeakReferenceMessenger.Default.Send(new SendGuardDataAndAccessToken(_previouslyStoredGuardData,
+                WeakReferenceMessenger.Default.Send(new SaveForAutoLogin(_previouslyStoredGuardData,
                     _refreshToken));
                 
                 _steamUser?.LogOn(new SteamUser.LogOnDetails
@@ -141,7 +141,7 @@ internal sealed class SteamLogin : IDisposable
                     // Do note that this guard data is also a JWT token and has an expiration date.
                     _previouslyStoredGuardData = pollResponse.NewGuardData;
 
-                WeakReferenceMessenger.Default.Send(new SendGuardDataAndAccessToken(_previouslyStoredGuardData,
+                WeakReferenceMessenger.Default.Send(new SaveForAutoLogin(_previouslyStoredGuardData,
                     pollResponse.RefreshToken));
 
 

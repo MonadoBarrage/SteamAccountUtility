@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -27,7 +28,6 @@ public partial class LoginWindowViewModel : ViewModelBase
     [ObservableProperty] private string? _loadingMessage;
     
     [ObservableProperty] private bool _isLoginButtonEnabled;
-    [ObservableProperty] private bool _checkForSavedCredentials;
     
     private ConcurrentDictionary<SteamID, FriendData> _friendList;
     private UserData _userData;
@@ -37,7 +37,7 @@ public partial class LoginWindowViewModel : ViewModelBase
     private readonly string? _accessToken;
     private readonly SteamLogin _steamLogin;
     private readonly AppDirectory _appDirectory;
-    
+     
     public LoginWindowViewModel()
     {
         _steamLogin = new SteamLogin();
@@ -53,9 +53,8 @@ public partial class LoginWindowViewModel : ViewModelBase
         try
         {
             var jsonDetails = _appDirectory.GetCredentials();
-            CheckForSavedCredentials = jsonDetails != new LoginDetails();
             Username = jsonDetails.Username;
-            Password =  jsonDetails.Password;
+            // Password =  jsonDetails.Password;
             SteamKey = jsonDetails.SteamKey;
             _guardData = jsonDetails.GuardData;
             _accessToken = jsonDetails.AccessToken;
@@ -77,20 +76,19 @@ public partial class LoginWindowViewModel : ViewModelBase
                 win.LoadingMessage = mang.NewMessage;
             });
         
-        WeakReferenceMessenger.Default.Register<LoginWindowViewModel, SendGuardDataAndAccessToken>
+        WeakReferenceMessenger.Default.Register<LoginWindowViewModel, SaveForAutoLogin>
         (this, static (win, mang) =>
         {
-            if (win.CheckForSavedCredentials)
+            
+            win._appDirectory.SaveCredentials(new LoginDetails
             {
-                win._appDirectory.SaveCredentials(new LoginDetails
-                {
-                    Username = win.Username, 
-                    Password = win.Password, 
-                    SteamKey = win.SteamKey,
-                    GuardData = mang.GuardData,
-                    AccessToken = mang.AccessToken
-                });
-            }
+                Username = win.Username, 
+                // Password = win.Password, 
+                SteamKey = win.SteamKey,
+                GuardData = mang.GuardData,
+                AccessToken = mang.AccessToken
+            });
+            
         });
         
         WeakReferenceMessenger.Default.Register<LoginWindowViewModel, ReceiveFriendsList>
@@ -152,13 +150,36 @@ public partial class LoginWindowViewModel : ViewModelBase
     {
         if (_friendList.Count > 0 && _gamesList.Count > 0 && _userData.ValidateData())
         {
-            WeakReferenceMessenger.Default.Send(new GoToHomePage(true, _userData, _gamesList, _friendList));
+            var friendViewModels = new ObservableCollection<AuxiliaryFriendViewModel>();
+            var gameViewModels = new ObservableCollection<AuxiliaryGameViewModel>();
+            foreach (var f in _friendList.Values)
+            {
+                friendViewModels.Add(new AuxiliaryFriendViewModel(f));
+            }
+
+            foreach (var g in _gamesList)
+            {
+                gameViewModels.Add(new AuxiliaryGameViewModel(g));
+            }
+             
+            var newSteamData = new AllSteamData()
+            {
+                CurrentUser =  _userData,
+                Friends = new ObservableCollection<FriendData>(_friendList.Values),
+                Games = new ObservableCollection<GameData>(_gamesList),
+                FriendVM = friendViewModels,
+                GameVM =  gameViewModels
+                 
+            };
+            
+            WeakReferenceMessenger.Default.Send(new GoToHomePage(newSteamData));
         }
     }
 
     [RelayCommand]
-    private async Task LoginToSteamAsync()
+    private async Task LoginToSteamAsync(bool? useAutoLogin)
     {
+        
         
         if (string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password) || string.IsNullOrEmpty(SteamKey))
         {
@@ -166,18 +187,10 @@ public partial class LoginWindowViewModel : ViewModelBase
             return;
         }
         LoadingMessage = "Logging in...";
-
-        if (CheckForSavedCredentials)
-        {
-            _appDirectory.SaveCredentials(new LoginDetails
-            {
-                Username = Username, Password = Password, SteamKey = SteamKey, GuardData = _guardData, AccessToken =  _accessToken
-            });
-        }
         
         _steamLogin.GetCredentials(Username, Password, SteamKey, _guardData, _accessToken);
         
-        await _steamLogin.InitializeClient();
+        await _steamLogin.InitializeClient(useAutoLogin ?? false);
         LoadingMessage = "Signing in";
         
         
