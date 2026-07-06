@@ -1,8 +1,10 @@
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+
 namespace SteamAccountUtility.Messages;
 
-public class ReceiveGameList(List<GameData> g)
+public class ReceiveGameList(ObservableCollection<GameData>? g)
 {
-    public readonly List<GameData> NewGameList = g;
+    public readonly ObservableCollection<GameData>? NewGameList = g;
 
 }

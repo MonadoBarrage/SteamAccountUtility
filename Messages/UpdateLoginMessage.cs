@@ -1,7 +1,7 @@
 namespace SteamAccountUtility.Messages;
 
-public class UpdateLoginMessage(string n, bool triggerButton = false)
+public class UpdateLoginMessage(string newMessage, bool isButtonEnabled)
 {
-    public string NewMessage = n;
-    public bool TriggerButton = triggerButton;
+    public readonly string NewMessage = newMessage;
+    public readonly bool IsButtonEnabled = isButtonEnabled;
 }

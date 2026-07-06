@@ -1,23 +1,170 @@
-<UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:vm="using:SteamAccountUtility.ViewModels"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="SteamAccountUtility.Views.HomeWindowView"
-             x:DataType="vm:HomeWindowViewModel">
-    <DockPanel>
-        
-        <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="0 40 0 0">
-            <StackPanel >
-                <Border CornerRadius="10" ClipToBounds="True" Background="#7FFF22DD">
-                    <Image Width="200" Height="200"
-                           Stretch="Uniform"
-                           Source="{Binding CurrentUser.AvatarIcon}" />
-                </Border>
-                <TextBlock Text="{Binding CurrentUser.ProfileName}"/>
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:SteamAccountUtility.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="SteamAccountUtility.Views.HomeWindowView"
+        x:DataType="vm:HomeWindowViewModel"
+        >
+    <Window.Resources>
+        <DrawingImage x:Key="CoverFallback">
+            <DrawingImage.Drawing>
+                <DrawingGroup>
+                    <GeometryDrawing>
+                        <RectangleGeometry Rect="10,-10,0.5,0.5" />
+                    </GeometryDrawing>
+                    <GeometryDrawing Brush="White"
+                                     Geometry="{DynamicResource PersonIcon}" />
+                </DrawingGroup>
+
+            </DrawingImage.Drawing>
+        </DrawingImage>
+    </Window.Resources>
+
+    <Window.Styles>
+        <Style Selector="Border.SubBox">
+            <Setter Property="BorderBrush" Value="Black" />
+            <Setter Property="BorderThickness" Value="3" />
+            <Setter Property="CornerRadius" Value="10" />
+        </Style>
+        <Style Selector="TextBlock.SubBoxTitle">
+            <Setter Property="FontFamily" Value="fonts:AppFonts#Motiva Sans ExtraBold" />
+            <Setter Property="Margin" Value="5" />
+            <Setter Property="FontSize" Value="25" />
+        </Style>
+        <Style Selector="TextBlock.SubBoxItem">
+            <Setter Property="FontFamily" Value="fonts:AppFonts#Motiva Sans Medium" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Margin" Value="5" />
+            <Setter Property="FontSize" Value="18" />
+        </Style>
+        <Style Selector="Grid.SubGameList">
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Margin" Value="10" />
+            <Setter Property="ClipToBounds" Value="True" />
+
+        </Style>
+    </Window.Styles>
+
+    <StackPanel>
+        <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="250 20 250 20">
+            <StackPanel>
+                <Grid ColumnDefinitions="*,200,*" RowDefinitions="200, 30, *, *" Background="Transparent"
+                      RowSpacing="10" ColumnSpacing="4">
+                    <Border BorderBrush="Aqua" BorderThickness="1" Grid.Row="0" Grid.Column="1" CornerRadius="10"
+                            ClipToBounds="True">
+
+                        <StackPanel>
+                            <Image Width="184" Height="184"
+                                   Stretch="Uniform"
+                                   Source="{Binding CurrentUser.AvatarIcon}" />
+
+                        </StackPanel>
+                    </Border>
+                    <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3"
+                               FontFamily="fonts:AppFonts#Motiva Sans Bold"
+                               HorizontalAlignment="Center"
+
+                               Text="{Binding CurrentUser.ProfileName}" />
+                </Grid>
+                <Grid ColumnDefinitions="50*,25*,25*" RowDefinitions="*,*,*,*,*" RowSpacing="10" ColumnSpacing="4">
+                    <Border Classes="SubBox" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Grid.RowSpan="5"
+                            ClipToBounds="True">
+                        <StackPanel>
+                            <TextBlock Classes="SubBoxTitle">Recent Activity</TextBlock>
+
+                            <Grid ColumnDefinitions=" 184,*" RowDefinitions="69,69,69" RowSpacing="20" Classes="SubGameList" >
+                                <!-- <Image Grid.Column="0" Grid.Row="0" -->
+                                <!--        Source="avares://SteamAccountUtil/Assets/capsule_184x69.jpg"> -->
+                                <!-- </Image> -->
+                                <StackPanel Grid.Column="1" Grid.Row="0" VerticalAlignment="Center">
+                                    <TextBlock Margin="20,0,20,0"
+                                               TextWrapping="NoWrap"
+                                               VerticalAlignment="Center"
+                                               TextTrimming="CharacterEllipsis"
+                                               Classes="SubBoxItem"
+                                               Text="Peak" />
+                                    <TextBlock Margin="50,0,20,0"
+                                               TextWrapping="NoWrap"
+                                               VerticalAlignment="Top"
+                                               Classes="SubBoxItem"
+                                               FontFamily="fonts:AppFonts#Motiva Sans Thin"
+                                               FontSize="14"
+                                               Text="Last Played: Jul 1" />
+                                </StackPanel>
+                                
+                                <!-- <Image Grid.Column="0" Grid.Row="1" -->
+                                <!--        Source="avares://SteamAccountUtil/Assets/capsule_184x69.jpg"> -->
+                                <!-- </Image> -->
+                                <StackPanel Grid.Column="1" Grid.Row="1" VerticalAlignment="Center">
+                                    <TextBlock Margin="20,0,20,0"
+                                               TextWrapping="NoWrap"
+                                               VerticalAlignment="Center"
+                                               TextTrimming="CharacterEllipsis"
+                                               Classes="SubBoxItem"
+                                               Text="Peak" />
+                                    <TextBlock Margin="50,0,20,0"
+                                               TextWrapping="NoWrap"
+                                               VerticalAlignment="Top"
+                                               Classes="SubBoxItem"
+                                               FontFamily="fonts:AppFonts#Motiva Sans Thin"
+                                               FontSize="14"
+                                               Text="Last Played: Jul 1" />
+                                </StackPanel>
+                                
+                                <!-- <Image Grid.Column="0" Grid.Row="2" -->
+                                <!--        Source="avares://SteamAccountUtil/Assets/capsule_184x69.jpg"> -->
+                                <!-- </Image> -->
+                                <StackPanel Grid.Column="1" Grid.Row="2" VerticalAlignment="Center">
+                                    <TextBlock Margin="20,0,20,0"
+                                               TextWrapping="NoWrap"
+                                               VerticalAlignment="Center"
+                                               TextTrimming="CharacterEllipsis"
+                                               Classes="SubBoxItem"
+                                               Text="Peak" />
+                                    <TextBlock Margin="50,0,20,0"
+                                               TextWrapping="NoWrap"
+                                               VerticalAlignment="Top"
+                                               Classes="SubBoxItem"
+                                               FontFamily="fonts:AppFonts#Motiva Sans Thin"
+                                               FontSize="14"
+                                               Text="Last Played: Jul 1" />
+                                </StackPanel>
+                                
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+                    <Border Classes="SubBox" Grid.Row="0" Grid.Column="2" Grid.RowSpan="2">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Classes="SubBoxTitle"> Level</TextBlock>
+                                <TextBlock Classes="SubBoxItem" 
+                                           Text="{Binding BadgeData.PlayerLevel}"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Classes="SubBoxTitle"> Games</TextBlock>
+                                <TextBlock Classes="SubBoxItem" 
+                                           Text="{Binding  GameData.Count}"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Classes="SubBoxTitle">Badges</TextBlock>
+                                <TextBlock Classes="SubBoxItem" 
+                                           Text="{Binding BadgeData.Badges.Count, FallbackValue=0}"
+                                           />
+                                
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Classes="SubBoxTitle">Friends</TextBlock>
+                                <TextBlock Classes="SubBoxItem" Text="{Binding FriendsData.Count}"/>
+                                
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                </Grid>
             </StackPanel>
         </ScrollViewer>
-    </DockPanel>
+    </StackPanel>
 
-</UserControl>
+</Window>

@@ -13,9 +13,6 @@ public class LoginDetails
     [JsonPropertyName("username")]
     public string? Username { get; init; }
     
-    // [JsonPropertyName("password")]
-    // public string? Password { get; init; }
-    
     [JsonPropertyName("steamKey")]
     public string? SteamKey { get; init; }
     
@@ -24,15 +21,16 @@ public class LoginDetails
     
     [JsonPropertyName("accessToken")]
     public string? AccessToken { get; init; }
+    
 }
 
 public class SteamGameHttpRequest
 {
     [JsonPropertyName("response")]
-    public required Response Response { get; init; }
+    public required GameResponse Response { get; init; }
 }
 
-public class Response
+public class GameResponse
 {
     [JsonPropertyName("game_count")]
     public int GameCount { get; set; }
@@ -70,6 +68,9 @@ public class GameData
     [JsonPropertyName("playtime_forever")]
     public int PlaytimeForever { get; set; }
     
+    [JsonPropertyName("playtime_2weeks")]
+    public int Playtime2Weeks { get; set; }
+    
     [JsonPropertyName("playtime_windows_forever")]
     public int PlaytimeWindowsForever { get; set; }
 
@@ -93,6 +94,8 @@ public class GameData
 
     public Bitmap? AppIcon { get; set; }
     
+    public string? AppURI { get; set; }
+    
     public void PrintAll()
     {
         Console.WriteLine("appid: {0}",AppId);
@@ -110,7 +113,7 @@ public class GameData
             Console.WriteLine(item);
         }
         Console.WriteLine("playtime_disconnected: {0}",PlaytimeDisconnected);
-
+        Console.WriteLine("AppURI: {0}", AppURI);
         
     }
 }
@@ -121,8 +124,11 @@ public class UserData
     public string? ProfileName { get; set; }
     public byte[]? AvatarHash { get; set; }
     
+    public string? AvatarURI { get; set; }
+    
     public Bitmap? AvatarIcon { get; set; }
     public string? LastPlayed { get; set; }
+    
     
     public bool ValidateData()
     {
@@ -136,6 +142,7 @@ public class UserData
         Console.WriteLine("SteamID: {0}",SteamID);
         Console.WriteLine("ProfileName: {0}",ProfileName);
         Console.WriteLine("AvatarHash: {0}",AvatarHash);
+        Console.WriteLine("AvatarURI: {0}",AvatarURI);
         Console.WriteLine("LastPlayed: {0}",LastPlayed);
         
     }
@@ -148,6 +155,7 @@ public class FriendData
     public required string ProfileName { get; set; }
     public byte[]? AvatarHash { get; set; }
     
+    public string? AvatarURI { get; set; }
     public Bitmap? AvatarIcon { get; set; }
 
     public bool ValidateData()
@@ -161,6 +169,7 @@ public class FriendData
     {
         Console.WriteLine("SteamID: {0}",SteamID);
         Console.WriteLine("ProfileName: {0}",ProfileName);
+        Console.WriteLine("AvatarURI: {0}",AvatarURI);
         Console.WriteLine("AvatarHash: {0}",AvatarHash);
     }
 }
@@ -205,10 +214,71 @@ public class RefreshTokenJson
 
 public class AllSteamData
 {
-    public  required UserData CurrentUser;
-    public  required ObservableCollection<FriendData> Friends;
-    public  required ObservableCollection<GameData> Games;
-    public  required ObservableCollection<AuxiliaryFriendViewModel> FriendVM;
-    public  required ObservableCollection<AuxiliaryGameViewModel> GameVM;
+    public required UserData CurrentUser;
+    public required ObservableCollection<FriendData>? Friends;
+    public required ObservableCollection<GameData>? Games;
+    public required ObservableCollection<AuxiliaryFriendViewModel>? FriendVM;
+    public required ObservableCollection<AuxiliaryGameViewModel>? GameVM;
+    public required BadgeResponse? FetchedBadgesResponse;
+    public required RecentlyPlayedGamesResponse? FetchedRecentlyPlayedGamesResponse;
+
 }
 
+public class BadgeResponse
+{
+    [JsonPropertyName("response")]
+    public BadgesAndLevelsData? Response { get; init; }
+}
+
+public class BadgesAndLevelsData
+{
+    [JsonPropertyName("badges")]
+    public ObservableCollection<Badge>? Badges { get; init; }
+    
+    [JsonPropertyName("player_xp")]
+    public long? PlayerXp { get; init; }
+    
+    [JsonPropertyName("player_level")]
+    public long? PlayerLevel { get; init; }
+    
+    [JsonPropertyName("player_xp_needed_to_level_up")]
+    public long?  NeededXpForLevelUp { get; init; }
+    
+    [JsonPropertyName("player_xp_needed_current_level")]
+    public long?  NeededXpForCurrentLevel { get; init; }
+    
+}
+
+
+public class Badge
+{
+    [JsonPropertyName("badgeid")]
+    public uint? BadgeId { get; init; }
+    
+    [JsonPropertyName("level")]
+    public uint? Level { get; init; }
+    
+    [JsonPropertyName("completion_time")]
+    public long? CompletionTime { get; init; }
+    
+    [JsonPropertyName("xp")]
+    public long? xp { get; init; }
+    
+    [JsonPropertyName("scarcity")]
+    public long? Scarcity { get; init; }
+}
+
+public class RecentlyPlayedGamesResponse
+{
+    [JsonPropertyName("response")]
+    public RecentlyPlayedGamesData? Response { get; init; }
+}
+
+public class RecentlyPlayedGamesData
+{
+    [JsonPropertyName("total_count")]
+    public long TotalCount { get; init; }
+    
+    [JsonPropertyName("games")]
+    public ObservableCollection<GameData>? Games { get; init; }
+}

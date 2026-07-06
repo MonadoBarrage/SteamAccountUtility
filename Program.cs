@@ -5,11 +5,12 @@ using Avalonia.Media.Fonts;
 
 namespace SteamAccountUtility;
 
-public sealed class MyFontCollection : EmbeddedFontCollection
+public sealed class AppFontCollection : EmbeddedFontCollection
 {
-    public MyFontCollection() : base(
-        new Uri("fonts:MyFonts", UriKind.Absolute),
-        new Uri("avares://SteamAccountUtil/Assets/Fonts", UriKind.Absolute))
+    
+    public AppFontCollection() : base(
+        new Uri("fonts:AppFonts", UriKind.Absolute),
+        new Uri("avares://SteamAccountUtility/Assets/Fonts", UriKind.Absolute))
     {
     }
 }
@@ -30,7 +31,7 @@ sealed class Program
 #if DEBUG
             .WithDeveloperTools()
 #endif
-            .ConfigureFonts(fontManager => { fontManager.AddFontCollection(new MyFontCollection()); })
+            .ConfigureFonts(fontManager => { fontManager.AddFontCollection(new AppFontCollection()); })
             .WithDataAnnotationsValidation()
             .WithInterFont()
             .LogToTrace();

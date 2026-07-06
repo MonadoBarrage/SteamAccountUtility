@@ -12,7 +12,7 @@
      <Application.Resources>
          <ResourceDictionary>
              <ResourceDictionary.MergedDictionaries>
-                 <ResourceInclude Source="avares://SteamAccountUtility/Icons.axaml" />            
+                 <ResourceInclude Source="avares://SteamAccountUtility/Icons.axaml" />     
              </ResourceDictionary.MergedDictionaries>
          </ResourceDictionary>
      </Application.Resources>

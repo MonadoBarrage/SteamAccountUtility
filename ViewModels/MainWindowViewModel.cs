@@ -1,9 +1,7 @@
-﻿using System.Collections.ObjectModel;
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using SteamAccountUtility.Messages;
-using SteamAccountUtility.Messages.Navigation;
 
 namespace SteamAccountUtility.ViewModels;
 
@@ -24,11 +22,11 @@ public partial class MainWindowViewModel : ViewModelBase
          
         
         WeakReferenceMessenger.Default.Register<MainWindowViewModel, GoToHomePage>
-        (this, (s, mang) =>
+        (this, (mainWindow, receivedMessage) =>
         {
-            s.AllSteamData = mang.UserSteamData;
-            s.IsBarVisible = true;
-            s.CurrentPage = new HomeWindowViewModel(s.AllSteamData);
+            mainWindow.AllSteamData = receivedMessage.UserSteamData;
+            mainWindow.IsBarVisible = true;
+            mainWindow.CurrentPage = new HomeWindowViewModel(mainWindow.AllSteamData);
         });
          
     }
