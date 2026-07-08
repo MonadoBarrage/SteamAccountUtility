@@ -43,11 +43,13 @@ internal sealed class SteamLogin : IDisposable
     private SteamClient? _steamClient;
     private SteamFriends? _steamFriends;
     private SteamUser? _steamUser;
+    private SteamApps? _steamApps;
+    
     private BadgeResponse? _badgesAndLevels;
     private RecentlyPlayedGamesResponse? _recentlyPlayedCollection;
     
     private readonly HttpClient _httpClient = new HttpClient();
-
+    
 
     public void Dispose()
     {
@@ -221,17 +223,16 @@ internal sealed class SteamLogin : IDisposable
         {
             if (_steamFriends == null || _steamUser == null) return;
 
-            List<Task> listOfTasks = new List<Task>();
             
             for (var x = 0; x < _steamFriends.GetFriendCount(); x++)
             {
                 var steamIdFriend = _steamFriends.GetFriendByIndex(x);
                 if (steamIdFriend == _steamUser.SteamID) continue;
-                listOfTasks.Add(
-                    Task.Run(()=>_steamFriends.RequestProfileInfo(steamIdFriend)));
+               
+                await _steamFriends.RequestProfileInfo(steamIdFriend);
             }
 
-            await Task.WhenAll(listOfTasks);
+            
             WeakReferenceMessenger.Default.Send(new ReceiveFriendsList(_friendsList));
         }
         catch (Exception e)
@@ -330,7 +331,9 @@ internal sealed class SteamLogin : IDisposable
             listOfTasks.Add(Task.Run(()=> FetchGameImages(g)));
         }
         await Task.WhenAll(listOfTasks);
-        WeakReferenceMessenger.Default.Send(new ReceiveGameList(new ObservableCollection<GameData>(_steamGames)));
+        var st = new List<GameData>(_steamGames);
+        st.Sort((x, y) => x.Name.CompareTo(y.Name, StringComparison.Ordinal));
+        WeakReferenceMessenger.Default.Send(new ReceiveGameList(new ObservableCollection<GameData>(st)));
         
     }
 
@@ -446,5 +449,10 @@ internal sealed class SteamLogin : IDisposable
         {
             return null;
         }
+    }
+    
+    private int CompareGameNames(GameData g1, GameData g2)
+    {
+        return g1.Name.CompareTo(g2.Name, StringComparison.Ordinal);
     }
 }
