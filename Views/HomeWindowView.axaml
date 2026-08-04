@@ -74,65 +74,34 @@
                         <StackPanel>
                             <TextBlock Classes="SubBoxTitle">Recent Activity</TextBlock>
 
-                            <Grid ColumnDefinitions=" 184,*" RowDefinitions="69,69,69" RowSpacing="20" Classes="SubGameList" >
-                                <!-- <Image Grid.Column="0" Grid.Row="0" -->
-                                <!--        Source="avares://SteamAccountUtil/Assets/capsule_184x69.jpg"> -->
-                                <!-- </Image> -->
-                                <StackPanel Grid.Column="1" Grid.Row="0" VerticalAlignment="Center">
-                                    <TextBlock Margin="20,0,20,0"
-                                               TextWrapping="NoWrap"
-                                               VerticalAlignment="Center"
-                                               TextTrimming="CharacterEllipsis"
-                                               Classes="SubBoxItem"
-                                               Text="Peak" />
-                                    <TextBlock Margin="50,0,20,0"
-                                               TextWrapping="NoWrap"
-                                               VerticalAlignment="Top"
-                                               Classes="SubBoxItem"
-                                               FontFamily="fonts:AppFonts#Motiva Sans Thin"
-                                               FontSize="14"
-                                               Text="Last Played: Jul 1" />
-                                </StackPanel>
-                                
-                                <!-- <Image Grid.Column="0" Grid.Row="1" -->
-                                <!--        Source="avares://SteamAccountUtil/Assets/capsule_184x69.jpg"> -->
-                                <!-- </Image> -->
-                                <StackPanel Grid.Column="1" Grid.Row="1" VerticalAlignment="Center">
-                                    <TextBlock Margin="20,0,20,0"
-                                               TextWrapping="NoWrap"
-                                               VerticalAlignment="Center"
-                                               TextTrimming="CharacterEllipsis"
-                                               Classes="SubBoxItem"
-                                               Text="Peak" />
-                                    <TextBlock Margin="50,0,20,0"
-                                               TextWrapping="NoWrap"
-                                               VerticalAlignment="Top"
-                                               Classes="SubBoxItem"
-                                               FontFamily="fonts:AppFonts#Motiva Sans Thin"
-                                               FontSize="14"
-                                               Text="Last Played: Jul 1" />
-                                </StackPanel>
-                                
-                                <!-- <Image Grid.Column="0" Grid.Row="2" -->
-                                <!--        Source="avares://SteamAccountUtil/Assets/capsule_184x69.jpg"> -->
-                                <!-- </Image> -->
-                                <StackPanel Grid.Column="1" Grid.Row="2" VerticalAlignment="Center">
-                                    <TextBlock Margin="20,0,20,0"
-                                               TextWrapping="NoWrap"
-                                               VerticalAlignment="Center"
-                                               TextTrimming="CharacterEllipsis"
-                                               Classes="SubBoxItem"
-                                               Text="Peak" />
-                                    <TextBlock Margin="50,0,20,0"
-                                               TextWrapping="NoWrap"
-                                               VerticalAlignment="Top"
-                                               Classes="SubBoxItem"
-                                               FontFamily="fonts:AppFonts#Motiva Sans Thin"
-                                               FontSize="14"
-                                               Text="Last Played: Jul 1" />
-                                </StackPanel>
-                                
-                            </Grid>
+                            <ItemsControl ItemsSource="{Binding RecentlyPlayedGames}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid ColumnDefinitions=" 184,*" RowDefinitions="69" RowSpacing="20" Classes="SubGameList" >
+                                            <Image Grid.Column="0" Grid.Row="0"
+                                                   Source="{Binding AppIcon}">
+                                            </Image>
+                                            <StackPanel  Grid.Column="1" Grid.Row="0"  VerticalAlignment="Center">
+                                            <TextBlock Margin="20,0,20,0"
+                                                       TextWrapping="NoWrap"
+                                                       VerticalAlignment="Center"
+                                                       TextTrimming="CharacterEllipsis"
+                                                       Classes="SubBoxItem"
+                                                       Text="{Binding Name}" />
+                                            <TextBlock Margin="50,0,20,0"
+                                                       TextWrapping="NoWrap"
+                                                       VerticalAlignment="Top"
+                                                       Classes="SubBoxItem"
+                                                       FontFamily="fonts:AppFonts#Motiva Sans Thin"
+                                                       FontSize="14"
+                                                       Text="{Binding Playtime2Weeks}" />
+                                        </StackPanel>
+                                            </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            
+                          
                         </StackPanel>
                     </Border>
                     <Border Classes="SubBox" Grid.Row="0" Grid.Column="2" Grid.RowSpan="2">

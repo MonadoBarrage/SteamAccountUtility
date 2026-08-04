@@ -35,6 +35,7 @@ internal sealed class SteamLogin : IDisposable
 
     private readonly ConcurrentDictionary<SteamID, FriendData> _friendsList = new();
     private readonly ConcurrentBag<GameData> _steamGames = new();
+    private readonly ConcurrentBag<GameData> _recentlyPlayedSteamGames = new();
 
     private bool _isRunning;
     private bool _isAutoLoginEnabled;
@@ -142,8 +143,9 @@ internal sealed class SteamLogin : IDisposable
                 // Do note that this guard data is also a JWT token and has an expiration date.
                 _guardData = pollResponse.NewGuardData;
 
-            if (string.IsNullOrEmpty(pollResponse.RefreshToken))
+            if (!string.IsNullOrEmpty(pollResponse.RefreshToken))
                 _refreshToken = pollResponse.RefreshToken;
+
 
             _steamUser.LogOn(new SteamUser.LogOnDetails
             {
@@ -328,7 +330,7 @@ internal sealed class SteamLogin : IDisposable
         List<Task> listOfTasks = new List<Task>();
         foreach (var g in fetchedGames)
         {
-            listOfTasks.Add(Task.Run(()=> FetchGameImages(g)));
+            listOfTasks.Add(Task.Run(()=> FetchGameImages(g, _steamGames)));
         }
         await Task.WhenAll(listOfTasks);
         var st = new List<GameData>(_steamGames);
@@ -338,7 +340,7 @@ internal sealed class SteamLogin : IDisposable
     }
 
 
-    private async Task FetchGameImages(GameData game)
+    private async Task FetchGameImages(GameData game, ConcurrentBag<GameData> baggedGames)
     {
         try
         {
@@ -353,7 +355,31 @@ internal sealed class SteamLogin : IDisposable
             game.AppIcon = await LoadImageAsync(newUri, newUri2);
             game.AppURI = newUri;
 
-            _steamGames.Add(game);
+            baggedGames.Add(game);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+        }
+    }
+    
+    
+    private async Task FetchCapsuleImages(GameData game, ConcurrentBag<GameData> baggedGames)
+    {
+        try
+        {
+            var newUri = "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/"
+                         + game.AppId
+                         + "/library_600x900.jpg";
+            var newUri2 = "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/"
+                          + game.AppId
+                          + "/"
+                          + game.ImgIconUrl
+                          + "/library_600x900.jpg";
+            game.AppIcon = await LoadImageAsync(newUri, newUri2);
+            game.AppURI = newUri;
+
+            baggedGames.Add(game);
         }
         catch (Exception e)
         {
@@ -414,14 +440,24 @@ internal sealed class SteamLogin : IDisposable
             var jsonResponse = await response.Content.ReadAsStringAsync();
 
             _recentlyPlayedCollection = JsonSerializer.Deserialize<RecentlyPlayedGamesResponse>(jsonResponse);
+            
+            if (_recentlyPlayedCollection != null && _recentlyPlayedCollection.Response != null &&
+                _recentlyPlayedCollection.Response.Games != null) 
+            {
+                var fetchingImages = new List<Task>();
+                foreach (var g in _recentlyPlayedCollection.Response.Games)
+                {
+                    fetchingImages.Add(Task.Run(()=> FetchGameImages(g, _recentlyPlayedSteamGames)));
+                }
+                await Task.WhenAll(fetchingImages);
+            }
 
-            WeakReferenceMessenger.Default.Send(new ReceiveRecentlyPlayedGames(_recentlyPlayedCollection));
+            WeakReferenceMessenger.Default.Send(new ReceiveRecentlyPlayedGames(_recentlyPlayedSteamGames));
         }
         catch (Exception e)
         {
             Console.Error.WriteLine(e);
-            _recentlyPlayedCollection = new RecentlyPlayedGamesResponse();
-            WeakReferenceMessenger.Default.Send(new ReceiveRecentlyPlayedGames(_recentlyPlayedCollection));
+            WeakReferenceMessenger.Default.Send(new ReceiveRecentlyPlayedGames(_recentlyPlayedSteamGames));
         }
     }
 

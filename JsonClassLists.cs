@@ -91,10 +91,12 @@ public class GameData
 
     [JsonPropertyName("playtime_disconnected")]
     public int PlaytimeDisconnected { get; set; }
-
-    public Bitmap? AppIcon { get; set; }
     
     public string? AppURI { get; set; }
+    public Bitmap? AppIcon { get; set; }
+    
+    public string? CapsuleURI  { get; set; }
+    public Bitmap? CapsuleIcon { get; set; }
     
     public void PrintAll()
     {
@@ -220,8 +222,8 @@ public class AllSteamData
     public required ObservableCollection<AuxiliaryFriendViewModel>? FriendVM;
     public required ObservableCollection<AuxiliaryGameViewModel>? GameVM;
     public required BadgeResponse? FetchedBadgesResponse;
-    public required RecentlyPlayedGamesResponse? FetchedRecentlyPlayedGamesResponse;
-
+    // public required RecentlyPlayedGamesResponse? FetchedRecentlyPlayedGamesResponse;
+    public required ObservableCollection<GameData>? RecentGames;
 }
 
 public class BadgeResponse

@@ -34,7 +34,7 @@ public partial class LoginWindowViewModel : ViewModelBase
     private UserData _userData;
     private ObservableCollection<GameData>? _gamesList;
     private BadgeResponse? _badgeResponse;
-    private RecentlyPlayedGamesResponse? _recentlyPlayedGamesResponse;
+    private ObservableCollection<GameData>? _recentlyPlayedGamesResponse;
 
     private readonly string? _guardData;
     private readonly string? _accessToken;
@@ -121,7 +121,7 @@ public partial class LoginWindowViewModel : ViewModelBase
         {
             Console.WriteLine("Fetched recently played games");
             loginWindow.fetchedRecentlyPlayedGames = true;
-            loginWindow._recentlyPlayedGamesResponse = receivedMessage.RecentlyPlayedGames;
+            loginWindow._recentlyPlayedGamesResponse = new ObservableCollection<GameData>(receivedMessage.RecentlyPlayedGames);
             loginWindow.CheckIfAllDataFetched();
             
         });
@@ -196,7 +196,7 @@ public partial class LoginWindowViewModel : ViewModelBase
                 FriendVM = friendViewModels,
                 GameVM =  gameViewModels,
                 FetchedBadgesResponse = _badgeResponse,
-                FetchedRecentlyPlayedGamesResponse = _recentlyPlayedGamesResponse
+                RecentGames = _recentlyPlayedGamesResponse
                  
             };
             _appDirectory.SaveStuff(newSteamData);

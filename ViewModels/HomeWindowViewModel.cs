@@ -15,7 +15,7 @@ public partial class HomeWindowViewModel(AllSteamData allSteamData): ViewModelBa
 
     [ObservableProperty] private ObservableCollection<FriendData> _friendsData =
         allSteamData?.Friends ?? new ObservableCollection<FriendData>();
-    
-    [ObservableProperty] private RecentlyPlayedGamesData _recentlyPlayedGames =
-        allSteamData?.FetchedRecentlyPlayedGamesResponse?.Response ?? new RecentlyPlayedGamesData();
+
+    [ObservableProperty] private ObservableCollection<GameData> _recentlyPlayedGames =
+        allSteamData?.RecentGames ?? new ObservableCollection<GameData>();
 }
