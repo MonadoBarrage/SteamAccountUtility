@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -32,9 +33,9 @@ public partial class LoginWindowViewModel : ViewModelBase
     
     private ObservableCollection<FriendData>? _friendList;
     private UserData _userData;
-    private ObservableCollection<GameData>? _gamesList;
+    private ObservableCollection<AppRenderedSteamGame>? _gamesList;
     private BadgeResponse? _badgeResponse;
-    private ObservableCollection<GameData>? _recentlyPlayedGamesResponse;
+    private List<int>? _recentlyPlayedGamesResponse;
 
     private readonly string? _guardData;
     private readonly string? _accessToken;
@@ -54,7 +55,7 @@ public partial class LoginWindowViewModel : ViewModelBase
         
         _friendList = new ObservableCollection<FriendData>();
         _userData = new UserData();
-        _gamesList = new ObservableCollection<GameData>();
+        _gamesList = new ObservableCollection<AppRenderedSteamGame>();
         
         fetchedGames = false;
         fetchedFriends = false;
@@ -121,7 +122,7 @@ public partial class LoginWindowViewModel : ViewModelBase
         {
             Console.WriteLine("Fetched recently played games");
             loginWindow.fetchedRecentlyPlayedGames = true;
-            loginWindow._recentlyPlayedGamesResponse = new ObservableCollection<GameData>(receivedMessage.RecentlyPlayedGames);
+            loginWindow._recentlyPlayedGamesResponse = new List<int>(receivedMessage.RecentlyPlayedGames);
             loginWindow.CheckIfAllDataFetched();
             
         });
@@ -176,6 +177,7 @@ public partial class LoginWindowViewModel : ViewModelBase
         {
             var friendViewModels = new ObservableCollection<AuxiliaryFriendViewModel>();
             var gameViewModels = new ObservableCollection<AuxiliaryGameViewModel>();
+            var recentlyPlayedGamesViewModels = new ObservableCollection<AppRenderedSteamGame>();
             if(_friendList != null)
                 foreach (var f in _friendList)
                 {
@@ -187,7 +189,14 @@ public partial class LoginWindowViewModel : ViewModelBase
                 {
                     gameViewModels.Add(new AuxiliaryGameViewModel(g));
                 }
-             
+
+            if (_recentlyPlayedGamesResponse != null && _gamesList != null)
+            {
+                foreach (var recentIds in _recentlyPlayedGamesResponse)
+                {
+                    
+                }
+            }
             var newSteamData = new AllSteamData()
             {
                 CurrentUser =  _userData,
@@ -196,7 +205,7 @@ public partial class LoginWindowViewModel : ViewModelBase
                 FriendVM = friendViewModels,
                 GameVM =  gameViewModels,
                 FetchedBadgesResponse = _badgeResponse,
-                RecentGames = _recentlyPlayedGamesResponse
+                RecentGames = recentlyPlayedGamesViewModels
                  
             };
             _appDirectory.SaveStuff(newSteamData);

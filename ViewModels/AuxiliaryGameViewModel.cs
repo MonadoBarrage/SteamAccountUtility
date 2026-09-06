@@ -4,15 +4,9 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace SteamAccountUtility.ViewModels;
 
-public partial class AuxiliaryGameViewModel(GameData gameData): ViewModelBase
+public partial class AuxiliaryGameViewModel(AppRenderedSteamGame gameData): ViewModelBase
 {
     [ObservableProperty]
-    private GameData _game = gameData;
+    private AppRenderedSteamGame _game = gameData;
     
-    
-    [RelayCommand]
-    private void Yay()
-    {
-        Game.PrintAll();
-    }
 }

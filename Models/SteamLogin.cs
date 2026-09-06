@@ -49,9 +49,8 @@ internal sealed class SteamLogin : IDisposable
     private BadgeResponse? _badgesAndLevels;
     private RecentlyPlayedGamesResponse? _recentlyPlayedCollection;
     
-    private readonly HttpClient _httpClient = new HttpClient();
+    private readonly SteamHttpRequests  _steamHttpRequests = new SteamHttpRequests();
     
-
     public void Dispose()
     {
         throw new NotImplementedException();
@@ -60,6 +59,8 @@ internal sealed class SteamLogin : IDisposable
 
     public async Task InitializeClient(bool useAutoLogin = false)
     {
+        
+        
         _steamClient = new SteamClient();
 
         _manager = new CallbackManager(_steamClient);
@@ -251,20 +252,14 @@ internal sealed class SteamLogin : IDisposable
             if (callback.FriendID == _steamUser.SteamID)
             {
 
-                var userConvertedByteArray = ConvertByteArrayToString(callback.AvatarHash);
-                var userNewLink = "https://avatars.fastly.steamstatic.com/"
-                                  + userConvertedByteArray
-                                  + "_full.jpg";
-
-                var userNewPhoto = await LoadImageAsync(userNewLink);
+               var newAvatarPhoto = await _steamHttpRequests.FetchUserAvatar(callback.AvatarHash);
 
                 var ud = new UserData()
                 {
                     SteamID = callback.FriendID,
                     ProfileName = callback.Name,
-                    AvatarURI = userNewLink,
                     AvatarHash = callback.AvatarHash,
-                    AvatarIcon = userNewPhoto,
+                    AvatarIcon = newAvatarPhoto,
                 };
 
                 WeakReferenceMessenger.Default.Send(new ReceiveUserData(ud));
@@ -276,21 +271,15 @@ internal sealed class SteamLogin : IDisposable
                 return;
             }
 
-
-            var convertedByteArray = ConvertByteArrayToString(callback.AvatarHash);
-            var newLink = "https://avatars.fastly.steamstatic.com/"
-                          + convertedByteArray
-                          + "_full.jpg";
-
-            Bitmap? newPhoto = await LoadImageAsync(newLink);
+            
+            Bitmap? avatarPhoto = await _steamHttpRequests.FetchUserAvatar(callback.AvatarHash);
 
             FriendData fd = new FriendData()
             {
                 SteamID = callback.FriendID,
                 ProfileName = callback.Name,
-                AvatarURI = newLink,
                 AvatarHash = callback.AvatarHash,
-                AvatarIcon = newPhoto
+                AvatarIcon = avatarPhoto
             };
             _friendsList.GetOrAdd(callback.FriendID, fd);
             
@@ -303,113 +292,25 @@ internal sealed class SteamLogin : IDisposable
 
     private async Task FetchGameList()
     {
-        if (_steamUser == null || _steamUser.SteamID == null) return;
-
+        if (_steamUser == null || _steamUser.SteamID == null || _steamKey == null) return;
 
         var sid = new SteamID(_steamUser.SteamID);
-        var requestLink = "https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/?key=" +
-                          _steamKey +
-                          "&steamid=" +
-                          sid.ConvertToUInt64() +
-                          "&include_appinfo=1";
+        ObservableCollection<AppRenderedSteamGame>? gamesLibrary = await _steamHttpRequests.FetchUserGameLibrary(_steamKey, sid);
 
-        using var response = await _httpClient.GetAsync(requestLink);
-
-        response.EnsureSuccessStatusCode();
-
-
-        var jsonResponse = await response.Content.ReadAsStringAsync();
-
-        var obj = JsonSerializer.Deserialize<SteamGameHttpRequest>(jsonResponse);
-        if (obj == null)
-        {
-            return;
-        }
-
-        var fetchedGames = obj.Response.Games;
-        List<Task> listOfTasks = new List<Task>();
-        foreach (var g in fetchedGames)
-        {
-            listOfTasks.Add(Task.Run(()=> FetchGameImages(g, _steamGames)));
-        }
-        await Task.WhenAll(listOfTasks);
-        var st = new List<GameData>(_steamGames);
-        st.Sort((x, y) => x.Name.CompareTo(y.Name, StringComparison.Ordinal));
-        WeakReferenceMessenger.Default.Send(new ReceiveGameList(new ObservableCollection<GameData>(st)));
+        if(gamesLibrary != null)
+            WeakReferenceMessenger.Default.Send(new ReceiveGameList(new ObservableCollection<AppRenderedSteamGame>(gamesLibrary)));
         
     }
-
-
-    private async Task FetchGameImages(GameData game, ConcurrentBag<GameData> baggedGames)
-    {
-        try
-        {
-            var newUri = "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/"
-                         + game.AppId
-                         + "/library_600x900.jpg";
-            var newUri2 = "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/"
-                          + game.AppId
-                          + "/"
-                          + game.ImgIconUrl
-                          + "/library_600x900.jpg";
-            game.AppIcon = await LoadImageAsync(newUri, newUri2);
-            game.AppURI = newUri;
-
-            baggedGames.Add(game);
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e);
-        }
-    }
     
-    
-    private async Task FetchCapsuleImages(GameData game, ConcurrentBag<GameData> baggedGames)
-    {
-        try
-        {
-            var newUri = "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/"
-                         + game.AppId
-                         + "/library_600x900.jpg";
-            var newUri2 = "https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/"
-                          + game.AppId
-                          + "/"
-                          + game.ImgIconUrl
-                          + "/library_600x900.jpg";
-            game.AppIcon = await LoadImageAsync(newUri, newUri2);
-            game.AppURI = newUri;
-
-            baggedGames.Add(game);
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e);
-        }
-    }
-
-    private static string ConvertByteArrayToString(byte[]? hash)
-    {
-        return (hash == null ? "" : BitConverter.ToString(hash).Replace("-", "").ToLower());
-    }
 
     private async Task GetBadgesAndLevels()
     {
         try
         {
-            if (_steamUser == null || _steamUser.SteamID == null) return;
-
+            if (_steamUser == null || _steamUser.SteamID == null || _steamKey == null) return;
             var sid = new SteamID(_steamUser.SteamID);
-            var requestLink = "https://api.steampowered.com/IPlayerService/GetBadges/v1/?key=" +
-                              _steamKey +
-                              "&steamid=" +
-                              sid.ConvertToUInt64();
-            using var response = await _httpClient.GetAsync(requestLink);
 
-            response.EnsureSuccessStatusCode();
-
-            var jsonResponse = await response.Content.ReadAsStringAsync();
-
-            _badgesAndLevels = JsonSerializer.Deserialize<BadgeResponse>(jsonResponse);
+            _badgesAndLevels = await _steamHttpRequests.FetchUserBadgesAndLevels(_steamKey, sid);
 
             WeakReferenceMessenger.Default.Send(new ReceiveBadgeResponse(_badgesAndLevels));
         }
@@ -425,70 +326,22 @@ internal sealed class SteamLogin : IDisposable
     {
         try
         {
-            if (_steamUser == null || _steamUser.SteamID == null) return;
+            if (_steamUser == null || _steamUser.SteamID == null || _steamKey == null) return;
 
             var sid = new SteamID(_steamUser.SteamID);
-            var requestLink = "https://api.steampowered.com/IPlayerService/GetRecentlyPlayedGames/v1/?key=" 
-                              + _steamKey 
-                              + "&steamid=" 
-                              + sid.ConvertToUInt64()
-                              + "&count=3";
-            using var response = await _httpClient.GetAsync(requestLink);
 
-            response.EnsureSuccessStatusCode();
+            var recentlyPlayed = await _steamHttpRequests.FetchRecentlyPlayedGames(_steamKey, sid);
 
-            var jsonResponse = await response.Content.ReadAsStringAsync();
+            List<int> gameIDs = new List<int>();
 
-            _recentlyPlayedCollection = JsonSerializer.Deserialize<RecentlyPlayedGamesResponse>(jsonResponse);
             
-            if (_recentlyPlayedCollection != null && _recentlyPlayedCollection.Response != null &&
-                _recentlyPlayedCollection.Response.Games != null) 
-            {
-                var fetchingImages = new List<Task>();
-                foreach (var g in _recentlyPlayedCollection.Response.Games)
-                {
-                    fetchingImages.Add(Task.Run(()=> FetchGameImages(g, _recentlyPlayedSteamGames)));
-                }
-                await Task.WhenAll(fetchingImages);
-            }
-
-            WeakReferenceMessenger.Default.Send(new ReceiveRecentlyPlayedGames(_recentlyPlayedSteamGames));
+            
+            WeakReferenceMessenger.Default.Send(new ReceiveRecentlyPlayedGames(gameIDs));
         }
         catch (Exception e)
         {
             Console.Error.WriteLine(e);
-            WeakReferenceMessenger.Default.Send(new ReceiveRecentlyPlayedGames(_recentlyPlayedSteamGames));
+            // WeakReferenceMessenger.Default.Send(new ReceiveRecentlyPlayedGames());
         }
-    }
-
-    private async Task<Bitmap?> LoadImageAsync(string? imageUrl, string? secondaryImageUrl = null)
-    {
-        if (string.IsNullOrEmpty(imageUrl)) return null;
-        try
-        {
-            var bytes = await _httpClient.GetByteArrayAsync(imageUrl);
-            using var stream = new MemoryStream(bytes);
-            return new Bitmap(stream);
-        }
-        catch (Exception)
-        {
-            if (string.IsNullOrEmpty(secondaryImageUrl)) return null;
-        }
-
-        try
-        {
-            var bytes = await _httpClient.GetByteArrayAsync(secondaryImageUrl);
-            using var stream = new MemoryStream(bytes);
-            return new Bitmap(stream);
-        }
-        catch (Exception)
-        {
-            return null;
-        }
-    }
-    
-    private int CompareGameNames(GameData g1, GameData g2)
-    {
-        return g1.Name.CompareTo(g2.Name, StringComparison.Ordinal);
     }
 }

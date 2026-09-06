@@ -79,7 +79,7 @@
                                     <DataTemplate>
                                         <Grid ColumnDefinitions=" 184,*" RowDefinitions="69" RowSpacing="20" Classes="SubGameList" >
                                             <Image Grid.Column="0" Grid.Row="0"
-                                                   Source="{Binding AppIcon}">
+                                                   Source="{Binding  Header}">
                                             </Image>
                                             <StackPanel  Grid.Column="1" Grid.Row="0"  VerticalAlignment="Center">
                                             <TextBlock Margin="20,0,20,0"
@@ -88,13 +88,6 @@
                                                        TextTrimming="CharacterEllipsis"
                                                        Classes="SubBoxItem"
                                                        Text="{Binding Name}" />
-                                            <TextBlock Margin="50,0,20,0"
-                                                       TextWrapping="NoWrap"
-                                                       VerticalAlignment="Top"
-                                                       Classes="SubBoxItem"
-                                                       FontFamily="fonts:AppFonts#Motiva Sans Thin"
-                                                       FontSize="14"
-                                                       Text="{Binding Playtime2Weeks}" />
                                         </StackPanel>
                                             </Grid>
                                     </DataTemplate>

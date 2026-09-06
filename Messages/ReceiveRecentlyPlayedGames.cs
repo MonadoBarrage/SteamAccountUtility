@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace SteamAccountUtility.Messages;
 
-public class ReceiveRecentlyPlayedGames(ConcurrentBag<GameData>? g)
+public class ReceiveRecentlyPlayedGames(List<int> g)
 {
-    public readonly ConcurrentBag<GameData>? RecentlyPlayedGames = g;
+    public readonly List<int> RecentlyPlayedGames = g;
 }

@@ -26,10 +26,10 @@
     <!-- <Button Command="{Binding YayCommand}"> -->
         <StackPanel Spacing="5" Width="200">
             <Border CornerRadius="10" ClipToBounds="True" Background="#7FFF22DD">
-                <Button Command="{Binding YayCommand}">
+                <Button >
                 <Image Width="200" Height="200"
                        Stretch="Uniform"
-                       Source="{Binding Game.AppIcon}"
+                       Source="{Binding Game.LibraryImage}"
                        />
                 <!-- Source="{StaticResource CoverFallback}"  -->
                 </Button>

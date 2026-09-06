@@ -218,12 +218,12 @@ public class AllSteamData
 {
     public required UserData CurrentUser;
     public required ObservableCollection<FriendData>? Friends;
-    public required ObservableCollection<GameData>? Games;
+    public required ObservableCollection<AppRenderedSteamGame>? Games;
     public required ObservableCollection<AuxiliaryFriendViewModel>? FriendVM;
     public required ObservableCollection<AuxiliaryGameViewModel>? GameVM;
     public required BadgeResponse? FetchedBadgesResponse;
     // public required RecentlyPlayedGamesResponse? FetchedRecentlyPlayedGamesResponse;
-    public required ObservableCollection<GameData>? RecentGames;
+    public required ObservableCollection<AppRenderedSteamGame>? RecentGames;
 }
 
 public class BadgeResponse
@@ -284,3 +284,84 @@ public class RecentlyPlayedGamesData
     [JsonPropertyName("games")]
     public ObservableCollection<GameData>? Games { get; init; }
 }
+
+
+
+
+public class SteamDataRequest
+{
+    
+    
+    [JsonPropertyName("include_assets")]
+    public bool IncludeAssets { get; set; }
+}
+
+public class SteamContext
+{
+    [JsonPropertyName("language")]
+    public string Language { get; set; }
+    
+    [JsonPropertyName("country_code")]
+    public string CountryCode { get; set; }
+}
+
+public class SteamGameIds
+{
+    [JsonPropertyName("appid")]
+    public int? AppId { get; set; } 
+}
+
+public class SteamInputJson
+{
+    [JsonPropertyName("ids")]
+    public SteamGameIds[]? Ids { get; set; }
+    
+    [JsonPropertyName("context")]
+    public SteamContext? Context { get; set; }
+    
+    [JsonPropertyName("data_request")]
+    public SteamDataRequest? DataRequest { get; set; }
+}
+
+public class SteamStoreItemsResponse
+{
+    [JsonPropertyName("response")]
+    public SteamStoreItems StoreItems { get; set; }
+}
+
+public class SteamStoreItems
+{
+    [JsonPropertyName("store_items")]
+    public SteamStoreGame[] StoreGames { get; set; }
+}
+
+public class SteamStoreGame
+{
+    [JsonPropertyName("id")] public int Id{ get; set; }
+    [JsonPropertyName("appid")] public int AppId{ get; set; }
+    [JsonPropertyName("name")] public string? Name{ get; set; }
+    [JsonPropertyName("assets")] public SteamStoreItemAssets? ItemAssets{ get; set; }
+}
+
+public class SteamStoreItemAssets
+{
+    [JsonPropertyName("asset_url_format")] public string? AssetUrlFormat{ get; set; }
+    [JsonPropertyName("small_capsule")] public string? SmallCapsule{ get; set; }
+    [JsonPropertyName("library_capsule")] public string? LibraryCapsule{ get; set; }
+    [JsonPropertyName("library_capsule_2x")] public string? LibraryCapsule2x{ get; set; }
+    [JsonPropertyName("header")] public string? Header{ get; set; }
+    [JsonPropertyName("library_hero")] public string? LibraryHero{ get; set; }
+    [JsonPropertyName("community_icon")] public string? CommunityIcon{ get; set; }
+    [JsonPropertyName("last_modified")] public long? LastModified{ get; set; }
+}
+
+
+public class AppRenderedSteamGame
+{
+    [JsonPropertyName("appid")] public int Appid{ get; set; }
+    [JsonPropertyName("name")] public string? Name{ get; set; }
+    [JsonPropertyName("library_image")] public Bitmap? LibraryImage{ get; set; }
+    [JsonPropertyName("header")] public Bitmap? Header{ get; set; }
+}
+
+    

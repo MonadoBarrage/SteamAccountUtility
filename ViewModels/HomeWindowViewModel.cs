@@ -10,12 +10,12 @@ public partial class HomeWindowViewModel(AllSteamData allSteamData): ViewModelBa
     [ObservableProperty] private BadgesAndLevelsData _badgeData = 
         allSteamData?.FetchedBadgesResponse?.Response ?? new BadgesAndLevelsData();
 
-    [ObservableProperty] private ObservableCollection<GameData> _gameData = 
-        allSteamData?.Games ?? new ObservableCollection<GameData>();
+    [ObservableProperty] private ObservableCollection<AppRenderedSteamGame> _gameData = 
+        allSteamData?.Games ?? new ObservableCollection<AppRenderedSteamGame>();
 
     [ObservableProperty] private ObservableCollection<FriendData> _friendsData =
         allSteamData?.Friends ?? new ObservableCollection<FriendData>();
 
-    [ObservableProperty] private ObservableCollection<GameData> _recentlyPlayedGames =
-        allSteamData?.RecentGames ?? new ObservableCollection<GameData>();
+    [ObservableProperty] private ObservableCollection<AppRenderedSteamGame> _recentlyPlayedGames =
+        allSteamData?.RecentGames ?? new ObservableCollection<AppRenderedSteamGame>();
 }
