@@ -10,10 +10,10 @@
     <StackPanel>
         
         <v:AuxiliaryGameView DataContext="{Binding SelectedGame }" />
-        <Button IsEnabled="{Binding EnableButton}" 
+        <Button 
                 Command="{Binding StopAndSelectGameCommand}" 
                 HorizontalAlignment="Center">
-            Randomize a game
+            <TextBlock Text="{Binding ButtonText}"/>
         </Button>
     </StackPanel>
 </UserControl>

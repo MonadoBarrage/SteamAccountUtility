@@ -218,7 +218,7 @@ public class AllSteamData
 {
     public required UserData CurrentUser;
     public required ObservableCollection<FriendData>? Friends;
-    public required ObservableCollection<AppRenderedSteamGame>? Games;
+    public required Dictionary<int, AppRenderedSteamGame>? Games;
     public required ObservableCollection<AuxiliaryFriendViewModel>? FriendVM;
     public required ObservableCollection<AuxiliaryGameViewModel>? GameVM;
     public required BadgeResponse? FetchedBadgesResponse;
@@ -364,4 +364,9 @@ public class AppRenderedSteamGame
     [JsonPropertyName("header")] public Bitmap? Header{ get; set; }
 }
 
+
+// public class BadgeAndLevelsHttpResponse
+// {
+//     [JsonPropertyName("")]
+// }
     

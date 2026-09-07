@@ -10,16 +10,15 @@ public partial class GameRandomizerViewModel: ViewModelBase
 {
     
     [ObservableProperty] private AuxiliaryGameViewModel? _selectedGame;
-    [ObservableProperty] private bool _enableButton;
+    [ObservableProperty] private string? _buttonText = "Click to select game";
+    [ObservableProperty] private bool _isRandomizing = true;
     
     private readonly ObservableCollection<AuxiliaryGameViewModel> _gamesList;
-    private bool _continueToWork = true;
     private readonly Random _randomGenerator;
     private int _delayCounter;
     
     public GameRandomizerViewModel(ObservableCollection<AuxiliaryGameViewModel> ag)
     {
-        _enableButton = true;
         _delayCounter = 40;
         _randomGenerator = new Random();
         _gamesList = ag;
@@ -29,7 +28,7 @@ public partial class GameRandomizerViewModel: ViewModelBase
 
     private async Task LoadGames()
     {
-        while (_continueToWork)
+        while (IsRandomizing)
         {
             // Username += "f";
             SelectedGame = _gamesList[_randomGenerator.Next(_gamesList.Count)];
@@ -41,8 +40,13 @@ public partial class GameRandomizerViewModel: ViewModelBase
     [RelayCommand]
     private void StopAndSelectGame()
     {
-        EnableButton = false;
-        _continueToWork = false;
+        IsRandomizing = !IsRandomizing;
+        if (IsRandomizing)
+        {
+            ButtonText = "Click to select game";
+            _ = LoadGames();
+        }
+        else ButtonText = "Randomize again";
 
     }
     

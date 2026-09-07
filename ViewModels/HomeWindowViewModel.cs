@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 
@@ -10,8 +11,8 @@ public partial class HomeWindowViewModel(AllSteamData allSteamData): ViewModelBa
     [ObservableProperty] private BadgesAndLevelsData _badgeData = 
         allSteamData?.FetchedBadgesResponse?.Response ?? new BadgesAndLevelsData();
 
-    [ObservableProperty] private ObservableCollection<AppRenderedSteamGame> _gameData = 
-        allSteamData?.Games ?? new ObservableCollection<AppRenderedSteamGame>();
+    [ObservableProperty] private Dictionary<int, AppRenderedSteamGame> _gameData = 
+        allSteamData?.Games ?? new Dictionary<int, AppRenderedSteamGame>();
 
     [ObservableProperty] private ObservableCollection<FriendData> _friendsData =
         allSteamData?.Friends ?? new ObservableCollection<FriendData>();

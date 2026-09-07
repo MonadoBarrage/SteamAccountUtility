@@ -33,7 +33,7 @@ public partial class LoginWindowViewModel : ViewModelBase
     
     private ObservableCollection<FriendData>? _friendList;
     private UserData _userData;
-    private ObservableCollection<AppRenderedSteamGame>? _gamesList;
+    private Dictionary<int, AppRenderedSteamGame>? _gamesList;
     private BadgeResponse? _badgeResponse;
     private List<int>? _recentlyPlayedGamesResponse;
 
@@ -55,7 +55,7 @@ public partial class LoginWindowViewModel : ViewModelBase
         
         _friendList = new ObservableCollection<FriendData>();
         _userData = new UserData();
-        _gamesList = new ObservableCollection<AppRenderedSteamGame>();
+        _gamesList = new Dictionary<int, AppRenderedSteamGame>();
         
         fetchedGames = false;
         fetchedFriends = false;
@@ -187,14 +187,16 @@ public partial class LoginWindowViewModel : ViewModelBase
             if(_gamesList != null)
                 foreach (var g in _gamesList)
                 {
-                    gameViewModels.Add(new AuxiliaryGameViewModel(g));
+                    gameViewModels.Add(new AuxiliaryGameViewModel(g.Value));
                 }
 
             if (_recentlyPlayedGamesResponse != null && _gamesList != null)
             {
                 foreach (var recentIds in _recentlyPlayedGamesResponse)
                 {
-                    
+                    var g = _gamesList[recentIds];
+                    if (g != null)
+                        recentlyPlayedGamesViewModels.Add(g);
                 }
             }
             var newSteamData = new AllSteamData()

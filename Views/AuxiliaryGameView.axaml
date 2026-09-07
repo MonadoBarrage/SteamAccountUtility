@@ -34,7 +34,7 @@
                 <!-- Source="{StaticResource CoverFallback}"  -->
                 </Button>
             </Border>
-            <TextBlock Text="{Binding Game.Name}"/>
+            <TextBlock TextWrapping="Wrap" Text="{Binding Game.Name} "/>
         </StackPanel>
     <!-- </Button> -->
 </UserControl>

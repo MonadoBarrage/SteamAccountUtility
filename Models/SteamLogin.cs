@@ -295,10 +295,10 @@ internal sealed class SteamLogin : IDisposable
         if (_steamUser == null || _steamUser.SteamID == null || _steamKey == null) return;
 
         var sid = new SteamID(_steamUser.SteamID);
-        ObservableCollection<AppRenderedSteamGame>? gamesLibrary = await _steamHttpRequests.FetchUserGameLibrary(_steamKey, sid);
+        Dictionary<int, AppRenderedSteamGame>? gamesLibrary = await _steamHttpRequests.FetchUserGameLibrary(_steamKey, sid);
 
         if(gamesLibrary != null)
-            WeakReferenceMessenger.Default.Send(new ReceiveGameList(new ObservableCollection<AppRenderedSteamGame>(gamesLibrary)));
+            WeakReferenceMessenger.Default.Send(new ReceiveGameList(new Dictionary<int, AppRenderedSteamGame>(gamesLibrary)));
         
     }
     
@@ -333,7 +333,13 @@ internal sealed class SteamLogin : IDisposable
             var recentlyPlayed = await _steamHttpRequests.FetchRecentlyPlayedGames(_steamKey, sid);
 
             List<int> gameIDs = new List<int>();
-
+            if (recentlyPlayed != null && recentlyPlayed.Response != null && recentlyPlayed.Response.Games != null)
+            {
+                foreach (var game in recentlyPlayed.Response.Games)
+                {
+                    gameIDs.Add(game.AppId);
+                }
+            }
             
             
             WeakReferenceMessenger.Default.Send(new ReceiveRecentlyPlayedGames(gameIDs));

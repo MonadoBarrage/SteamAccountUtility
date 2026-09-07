@@ -3,8 +3,8 @@ using System.Collections.ObjectModel;
 
 namespace SteamAccountUtility.Messages;
 
-public class ReceiveGameList(ObservableCollection<AppRenderedSteamGame>? g)
+public class ReceiveGameList(Dictionary<int, AppRenderedSteamGame>? g)
 {
-    public readonly ObservableCollection<AppRenderedSteamGame>? NewGameList = g;
+    public readonly Dictionary<int, AppRenderedSteamGame>? NewGameList = g;
 
 }
