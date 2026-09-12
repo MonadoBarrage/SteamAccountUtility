@@ -1,6 +1,6 @@
 namespace SteamAccountUtility.Messages;
 
-public class StopFetchingInformation
+public class StopFetchingInfoMessage()
 {
     
 }

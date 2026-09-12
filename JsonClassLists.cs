@@ -13,30 +13,12 @@ public class LoginDetails
     [JsonPropertyName("username")]
     public string? Username { get; init; }
     
-    [JsonPropertyName("steamKey")]
-    public string? SteamKey { get; init; }
-    
     [JsonPropertyName("guardData")]
     public string? GuardData { get; init; }
     
     [JsonPropertyName("accessToken")]
     public string? AccessToken { get; init; }
     
-}
-
-public class SteamGameHttpRequest
-{
-    [JsonPropertyName("response")]
-    public required GameResponse Response { get; init; }
-}
-
-public class GameResponse
-{
-    [JsonPropertyName("game_count")]
-    public int GameCount { get; set; }
-
-    [JsonPropertyName("games")]
-    public required List<GameData> Games { get; set; }
 }
 
 public class GameData
@@ -217,13 +199,15 @@ public class RefreshTokenJson
 public class AllSteamData
 {
     public required UserData CurrentUser;
-    public required ObservableCollection<FriendData>? Friends;
     public required Dictionary<int, AppRenderedSteamGame>? Games;
-    public required ObservableCollection<AuxiliaryFriendViewModel>? FriendVM;
-    public required ObservableCollection<AuxiliaryGameViewModel>? GameVM;
-    public required BadgeResponse? FetchedBadgesResponse;
-    // public required RecentlyPlayedGamesResponse? FetchedRecentlyPlayedGamesResponse;
+    public required ObservableCollection<FriendData>? Friends;
+    public required BadgesAndLevelsData? BadgesAndLevels;
     public required ObservableCollection<AppRenderedSteamGame>? RecentGames;
+    
+    public required ObservableCollection<AuxiliaryFriendViewModel>? FriendVm;
+    public required ObservableCollection<AuxiliaryGameViewModel>? GameVm;
+    
+    
 }
 
 public class BadgeResponse
@@ -250,7 +234,6 @@ public class BadgesAndLevelsData
     public long?  NeededXpForCurrentLevel { get; init; }
     
 }
-
 
 public class Badge
 {
@@ -283,44 +266,6 @@ public class RecentlyPlayedGamesData
     
     [JsonPropertyName("games")]
     public ObservableCollection<GameData>? Games { get; init; }
-}
-
-
-
-
-public class SteamDataRequest
-{
-    
-    
-    [JsonPropertyName("include_assets")]
-    public bool IncludeAssets { get; set; }
-}
-
-public class SteamContext
-{
-    [JsonPropertyName("language")]
-    public string Language { get; set; }
-    
-    [JsonPropertyName("country_code")]
-    public string CountryCode { get; set; }
-}
-
-public class SteamGameIds
-{
-    [JsonPropertyName("appid")]
-    public int? AppId { get; set; } 
-}
-
-public class SteamInputJson
-{
-    [JsonPropertyName("ids")]
-    public SteamGameIds[]? Ids { get; set; }
-    
-    [JsonPropertyName("context")]
-    public SteamContext? Context { get; set; }
-    
-    [JsonPropertyName("data_request")]
-    public SteamDataRequest? DataRequest { get; set; }
 }
 
 public class SteamStoreItemsResponse
@@ -363,10 +308,3 @@ public class AppRenderedSteamGame
     [JsonPropertyName("library_image")] public Bitmap? LibraryImage{ get; set; }
     [JsonPropertyName("header")] public Bitmap? Header{ get; set; }
 }
-
-
-// public class BadgeAndLevelsHttpResponse
-// {
-//     [JsonPropertyName("")]
-// }
-    

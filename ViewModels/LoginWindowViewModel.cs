@@ -1,8 +1,6 @@
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -10,23 +8,14 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using SteamAccountUtility.Messages;
 using SteamAccountUtility.Models;
-using SteamKit2;
-
-/*
-  Note: Functions for fetching credentials are NOT secured or encrypted.
-  This is for testing purposes only and will not be in the final app
-  
- */
-
 
 namespace SteamAccountUtility.ViewModels;
 
-public partial class LoginWindowViewModel : ViewModelBase
+public partial class LoginWindowViewModel: ViewModelBase
 {
 
     [ObservableProperty] private string? _username;
     [ObservableProperty] private string? _password;
-    [ObservableProperty] private string? _steamKey;
     [ObservableProperty] private string? _loadingMessage;
     
     [ObservableProperty] private bool _isLoginButtonEnabled;
@@ -34,34 +23,31 @@ public partial class LoginWindowViewModel : ViewModelBase
     private ObservableCollection<FriendData>? _friendList;
     private UserData _userData;
     private Dictionary<int, AppRenderedSteamGame>? _gamesList;
-    private BadgeResponse? _badgeResponse;
+    private BadgesAndLevelsData? _badgesAndLevels;
     private List<int>? _recentlyPlayedGamesResponse;
 
     private readonly string? _guardData;
     private readonly string? _accessToken;
     private readonly SteamLogin _steamLogin;
-    private readonly AppDirectory _appDirectory;
 
-    private bool fetchedGames;
-    private bool fetchedFriends;
-    private bool fetchedUser;
-    private bool fetchedBadges;
-    private bool fetchedRecentlyPlayedGames;
+    private bool _fetchedGames;
+    private bool _fetchedFriends;
+    private bool _fetchedUser;
+    private bool _fetchedBadges;
+    private bool _fetchedRecentlyPlayedGames;
     
-    public LoginWindowViewModel()
+    public LoginWindowViewModel(string serverAddress)
     {
-        _steamLogin = new SteamLogin();
-        _appDirectory = new AppDirectory();
+        _steamLogin = new SteamLogin(serverAddress);
         
-        _friendList = new ObservableCollection<FriendData>();
+        _friendList = [];
         _userData = new UserData();
         _gamesList = new Dictionary<int, AppRenderedSteamGame>();
         
-        fetchedGames = false;
-        fetchedFriends = false;
-        fetchedUser = false;
+        _fetchedGames = false;
+        _fetchedFriends = false;
+        _fetchedUser = false;
         
-        _appDirectory.SetUpNewDirectory();
         _isLoginButtonEnabled = true;
         
         WeakReferenceMessenger.Default.Register<LoginWindowViewModel, UpdateLoginMessage>
@@ -71,25 +57,11 @@ public partial class LoginWindowViewModel : ViewModelBase
                 loginWindow.IsLoginButtonEnabled = receivedMessage.IsButtonEnabled;
             });
         
-        WeakReferenceMessenger.Default.Register<LoginWindowViewModel, SaveForAutoLogin>
-        (this, static (loginWindow, receivedMessage) =>
-        {
-
-                loginWindow._appDirectory.SaveCredentials(new LoginDetails
-                {
-                    Username = loginWindow.Username, 
-                    SteamKey = loginWindow.SteamKey,
-                    GuardData = receivedMessage.GuardData,
-                    AccessToken = receivedMessage.AccessToken
-                });
-            
-        });
-        
         WeakReferenceMessenger.Default.Register<LoginWindowViewModel, ReceiveFriendsList>
         (this, static (loginWindow, receivedMessage) =>
         {
             Console.WriteLine("Fetched friends list");
-            loginWindow.fetchedFriends = true;
+            loginWindow._fetchedFriends = true;
             if(receivedMessage.NewFriendsList != null)
                 loginWindow._friendList = new ObservableCollection<FriendData>(receivedMessage.NewFriendsList.Values);
             
@@ -102,7 +74,7 @@ public partial class LoginWindowViewModel : ViewModelBase
         (this, static (loginWindow, receivedMessage) =>
         {
             Console.WriteLine("Fetched user data");
-            loginWindow.fetchedUser = true;
+            loginWindow._fetchedUser = true;
             loginWindow._userData = receivedMessage.User;
             loginWindow.CheckIfAllDataFetched();
         });
@@ -111,7 +83,7 @@ public partial class LoginWindowViewModel : ViewModelBase
         (this, static (loginWindow, receivedMessage) =>
         {
             Console.WriteLine("Fetched games list");
-            loginWindow.fetchedGames = true;
+            loginWindow._fetchedGames = true;
             loginWindow._gamesList = receivedMessage.NewGameList;
             loginWindow.CheckIfAllDataFetched();
             
@@ -121,33 +93,25 @@ public partial class LoginWindowViewModel : ViewModelBase
         (this, static (loginWindow, receivedMessage) =>
         {
             Console.WriteLine("Fetched recently played games");
-            loginWindow.fetchedRecentlyPlayedGames = true;
+            loginWindow._fetchedRecentlyPlayedGames = true;
             loginWindow._recentlyPlayedGamesResponse = new List<int>(receivedMessage.RecentlyPlayedGames);
             loginWindow.CheckIfAllDataFetched();
             
         });
         
-        WeakReferenceMessenger.Default.Register<LoginWindowViewModel, ReceiveBadgeResponse>
+        WeakReferenceMessenger.Default.Register<LoginWindowViewModel, ReceiveBadgesAndLevels>
         (this, static (loginWindow, receivedMessage) =>
         {
             Console.WriteLine("Fetched badges");
-            loginWindow.fetchedBadges = true;
-            loginWindow._badgeResponse = receivedMessage.FetchedBadges;
+            loginWindow._fetchedBadges = true;
+            loginWindow._badgesAndLevels = receivedMessage.FetchedBadges;
             loginWindow.CheckIfAllDataFetched();
             
         });
         
         try
         {
-            var jsonDetails = _appDirectory.GetCredentials();
-            Username = jsonDetails.Username;
-            SteamKey = jsonDetails.SteamKey;
-            _guardData = jsonDetails.GuardData;
-            _accessToken = jsonDetails.AccessToken;
-            
-            
             if (!string.IsNullOrEmpty(Username) 
-                && !string.IsNullOrEmpty(SteamKey) 
                 && !string.IsNullOrEmpty(_accessToken))
             {
                 if (ParseRefreshToken(_accessToken))
@@ -157,27 +121,24 @@ public partial class LoginWindowViewModel : ViewModelBase
                     });
                 else LoadingMessage = "Session expired. Please log in again";
             }
-            
         }
         catch (Exception)
         {
             Username = "";
             Password = "";
-            SteamKey = "";
             _guardData = "";
             _accessToken = "";
         }
-        
-        
     }
     
     private void CheckIfAllDataFetched()
     {
-        if (fetchedFriends && fetchedGames && fetchedUser && fetchedRecentlyPlayedGames && fetchedBadges)
+        if (_fetchedFriends && _fetchedGames && _fetchedUser && _fetchedRecentlyPlayedGames && _fetchedBadges)
         {
             var friendViewModels = new ObservableCollection<AuxiliaryFriendViewModel>();
             var gameViewModels = new ObservableCollection<AuxiliaryGameViewModel>();
             var recentlyPlayedGamesViewModels = new ObservableCollection<AppRenderedSteamGame>();
+            
             if(_friendList != null)
                 foreach (var f in _friendList)
                 {
@@ -195,23 +156,22 @@ public partial class LoginWindowViewModel : ViewModelBase
                 foreach (var recentIds in _recentlyPlayedGamesResponse)
                 {
                     var g = _gamesList[recentIds];
-                    if (g != null)
-                        recentlyPlayedGamesViewModels.Add(g);
+                    recentlyPlayedGamesViewModels.Add(g);
                 }
             }
+            
             var newSteamData = new AllSteamData()
             {
                 CurrentUser =  _userData,
                 Friends = _friendList,
                 Games = _gamesList,
-                FriendVM = friendViewModels,
-                GameVM =  gameViewModels,
-                FetchedBadgesResponse = _badgeResponse,
+                FriendVm = friendViewModels,
+                GameVm =  gameViewModels,
+                BadgesAndLevels = _badgesAndLevels,
                 RecentGames = recentlyPlayedGamesViewModels
                  
             };
-            _appDirectory.SaveStuff(newSteamData);
-            WeakReferenceMessenger.Default.Send(new GoToHomePage(newSteamData));
+            WeakReferenceMessenger.Default.Send(new GoToHomePageMessage(newSteamData));
         }
     }
 
@@ -219,9 +179,9 @@ public partial class LoginWindowViewModel : ViewModelBase
     private async Task LoginToSteamAsync(bool? useAutoLogin)
     {
         
-        if (useAutoLogin == false && (string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password) || string.IsNullOrEmpty(SteamKey)))
+        if (useAutoLogin == false && (string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password)))
         {
-            LoadingMessage = "Please enter a username, password, and steam key";
+            LoadingMessage = "Please enter a username and password";
             return;
         }
         
@@ -229,12 +189,11 @@ public partial class LoginWindowViewModel : ViewModelBase
         LoadingMessage = "Logging in...";
         
         
-        _steamLogin.GetCredentials(Username, Password, SteamKey, _guardData, _accessToken);
+        _steamLogin.GetCredentials(Username, Password, _guardData, _accessToken);
         
         await _steamLogin.InitializeClient(useAutoLogin ?? false);
         
     }
-    
     private static bool ParseRefreshToken(string token)
     {
         var tokenComponents = token.Split('.');

@@ -1,10 +1,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.IO;
-using System.Net.Http;
-using System.Text.Json;
 using System.Threading.Tasks;
 using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.Messaging;
@@ -14,48 +10,43 @@ using SteamKit2.Authentication;
 
 namespace SteamAccountUtility.Models;
 
-internal sealed class SteamLogin : IDisposable
+internal sealed class SteamLogin(string serverAddress) : IDisposable
 {
-    public void GetCredentials(string? username, string? password, string? steamKey, string? guardData,
+    
+    public void GetCredentials(string? username, string? password, string? guardData,
         string? accessToken)
     {
+        
         _username = username;
         _password = password;
-        _steamKey = steamKey;
         _guardData = guardData;
         _refreshToken = accessToken;
     }
-
+    
     private string? _username;
     private string? _password;
-    private string? _steamKey;
-
     private string? _guardData;
     private string? _refreshToken;
 
+    
     private readonly ConcurrentDictionary<SteamID, FriendData> _friendsList = new();
-    private readonly ConcurrentBag<GameData> _steamGames = new();
-    private readonly ConcurrentBag<GameData> _recentlyPlayedSteamGames = new();
 
     private bool _isRunning;
     private bool _isAutoLoginEnabled;
 
     private CallbackManager? _manager;
     private SteamClient? _steamClient;
+    
     private SteamFriends? _steamFriends;
     private SteamUser? _steamUser;
-    private SteamApps? _steamApps;
-    
     private BadgeResponse? _badgesAndLevels;
-    private RecentlyPlayedGamesResponse? _recentlyPlayedCollection;
     
-    private readonly SteamHttpRequests  _steamHttpRequests = new SteamHttpRequests();
+    private readonly SteamHttpRequests  _steamHttpRequests = new(serverAddress);
     
     public void Dispose()
     {
         throw new NotImplementedException();
     }
-
 
     public async Task InitializeClient(bool useAutoLogin = false)
     {
@@ -78,19 +69,19 @@ internal sealed class SteamLogin : IDisposable
         _manager.Subscribe<SteamUser.AccountInfoCallback>(OnAccountInfo);
         _manager.Subscribe<SteamFriends.FriendsListCallback>(OnFriendsList);
         _manager.Subscribe<SteamFriends.PersonaStateCallback>(OnPersonaState);
-
-
+        
         _isRunning = true;
 
         Console.WriteLine("Connecting to Steam...");
 
         _steamClient.Connect();
-
+        
         while (_isRunning)
-
             await _manager.RunWaitCallbackAsync();
     }
 
+    
+    
     private async void OnConnected(SteamClient.ConnectedCallback callback)
     {
         try
@@ -139,9 +130,6 @@ internal sealed class SteamLogin : IDisposable
             var pollResponse = await authSession.PollingWaitForResultAsync();
 
             if (pollResponse.NewGuardData != null)
-                // When using certain two factor methods (such as email 2fa), guard data may be provided by Steam
-                // for use in future authentication sessions to avoid triggering 2FA again (this works similarly to the old sentry file system).
-                // Do note that this guard data is also a JWT token and has an expiration date.
                 _guardData = pollResponse.NewGuardData;
 
             if (!string.IsNullOrEmpty(pollResponse.RefreshToken))
@@ -153,7 +141,7 @@ internal sealed class SteamLogin : IDisposable
                 Username = pollResponse.AccountName,
                 AccessToken = _refreshToken,
                 ShouldRememberPassword =
-                    shouldRememberPassword // If you set IsPersistentSession to true, this also must be set to true for it to work correctly
+                    shouldRememberPassword 
             });
         }
         catch (Exception e)
@@ -186,15 +174,12 @@ internal sealed class SteamLogin : IDisposable
                 return;
             }
 
-            WeakReferenceMessenger.Default.Send(new SaveForAutoLogin(_guardData,
-                _refreshToken));
-
             Console.WriteLine("Successfully logged on!");
 
             if (_steamFriends == null || _steamUser == null || _steamUser.SteamID == null) return;
             
             _ = _steamFriends.RequestProfileInfo(_steamUser.SteamID);
-            _ = FetchGameList();
+            _ = GetGameList();
             _ = GetBadgesAndLevels();
             _ = GetRecentlyPlayedGames();
         }
@@ -213,12 +198,13 @@ internal sealed class SteamLogin : IDisposable
         Console.WriteLine("Logged off of Steam: {0}", callback.Result);
 #endif
     }
+    
+    
 
     private void OnAccountInfo(SteamUser.AccountInfoCallback callback)
     {
         _steamFriends?.SetPersonaState(EPersonaState.Online);
     }
-
 
     private async void OnFriendsList(SteamFriends.FriendsListCallback callback)
     {
@@ -270,7 +256,6 @@ internal sealed class SteamLogin : IDisposable
             {
                 return;
             }
-
             
             Bitmap? avatarPhoto = await _steamHttpRequests.FetchUserAvatar(callback.AvatarHash);
 
@@ -289,36 +274,38 @@ internal sealed class SteamLogin : IDisposable
             Console.WriteLine(e);
         }
     }
-
-    private async Task FetchGameList()
+    
+    
+    
+    private async Task GetGameList()
     {
-        if (_steamUser == null || _steamUser.SteamID == null || _steamKey == null) return;
+        if (_steamUser == null || _steamUser.SteamID == null) return;
 
         var sid = new SteamID(_steamUser.SteamID);
-        Dictionary<int, AppRenderedSteamGame>? gamesLibrary = await _steamHttpRequests.FetchUserGameLibrary(_steamKey, sid);
+        Dictionary<int, AppRenderedSteamGame>? gamesLibrary = await _steamHttpRequests.FetchUserGameLibrary(sid);
 
         if(gamesLibrary != null)
             WeakReferenceMessenger.Default.Send(new ReceiveGameList(new Dictionary<int, AppRenderedSteamGame>(gamesLibrary)));
-        
+        else
+            WeakReferenceMessenger.Default.Send(new StopFetchingInfoMessage());
     }
     
-
     private async Task GetBadgesAndLevels()
     {
         try
         {
-            if (_steamUser == null || _steamUser.SteamID == null || _steamKey == null) return;
+            if (_steamUser == null || _steamUser.SteamID == null) return;
             var sid = new SteamID(_steamUser.SteamID);
 
-            _badgesAndLevels = await _steamHttpRequests.FetchUserBadgesAndLevels(_steamKey, sid);
+            _badgesAndLevels = await _steamHttpRequests.FetchUserBadgesAndLevels(sid);
 
-            WeakReferenceMessenger.Default.Send(new ReceiveBadgeResponse(_badgesAndLevels));
+            WeakReferenceMessenger.Default.Send(new ReceiveBadgesAndLevels(_badgesAndLevels));
         }
         catch (Exception e)
         {
             Console.Error.WriteLine(e);
             _badgesAndLevels = new BadgeResponse();
-            WeakReferenceMessenger.Default.Send(new ReceiveBadgeResponse(_badgesAndLevels));
+            WeakReferenceMessenger.Default.Send(new ReceiveBadgesAndLevels(_badgesAndLevels));
         }
     }
 
@@ -326,11 +313,11 @@ internal sealed class SteamLogin : IDisposable
     {
         try
         {
-            if (_steamUser == null || _steamUser.SteamID == null || _steamKey == null) return;
+            if (_steamUser == null || _steamUser.SteamID == null) return;
 
             var sid = new SteamID(_steamUser.SteamID);
 
-            var recentlyPlayed = await _steamHttpRequests.FetchRecentlyPlayedGames(_steamKey, sid);
+            var recentlyPlayed = await _steamHttpRequests.FetchRecentlyPlayedGames(sid);
 
             List<int> gameIDs = new List<int>();
             if (recentlyPlayed != null && recentlyPlayed.Response != null && recentlyPlayed.Response.Games != null)

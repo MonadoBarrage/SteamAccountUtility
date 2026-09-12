@@ -17,6 +17,7 @@
                        Text="{Binding LoadingMessage}" />
 
             <!-- <CheckBox HorizontalAlignment="Center" IsChecked="{Binding CheckForSavedCredentials}">Save Login Details</CheckBox> -->
+            
             <Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
                     VerticalContentAlignment="Center"
                     Height="50" FontSize="20" Margin="0 20 0 10" Content="Login"
@@ -45,14 +46,6 @@
                      PasswordChar="*"
                      RevealPassword="False"
                      />
-            <TextBox Padding="10" MaxLines="1" HorizontalAlignment="Stretch" Margin="5"
-                VerticalContentAlignment="Center" Height="50" AcceptsReturn="False"
-                PlaceholderText="Enter steam key"
-                IsEnabled="{Binding IsLoginButtonEnabled}"
-                Text="{Binding SteamKey}"
-                PasswordChar="*"
-                RevealPassword="False"
-                />
             
         </StackPanel>
 
