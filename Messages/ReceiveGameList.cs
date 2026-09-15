@@ -3,8 +3,9 @@ using System.Collections.ObjectModel;
 
 namespace SteamAccountUtility.Messages;
 
-public class ReceiveGameList(Dictionary<int, AppRenderedSteamGame>? g)
+public class ReceiveGameList(Dictionary<int, RenderedSteamGame> gamesList, bool fetchedSuccessfully)
 {
-    public readonly Dictionary<int, AppRenderedSteamGame>? NewGameList = g;
+    public readonly Dictionary<int, RenderedSteamGame> NewGameList = gamesList;
+    public readonly bool FetchedSuccessfully = fetchedSuccessfully;
 
 }

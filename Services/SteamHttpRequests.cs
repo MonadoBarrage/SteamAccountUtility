@@ -14,7 +14,7 @@ public class SteamHttpRequests(string address)
     private readonly HttpClient _httpClient = new();
 
     private readonly string _serverUrl = "http://" + address;
-    public async Task<Dictionary<int, AppRenderedSteamGame>?> FetchUserGameLibrary(SteamID userId)
+    public async Task<Dictionary<int, RenderedSteamGame>?> FetchUserGameLibrary(SteamID userId)
     {
         var requestLink = _serverUrl + "/owned-games?id=" + userId.ConvertToUInt64();
         using var response = await _httpClient.GetAsync(requestLink);
@@ -22,12 +22,12 @@ public class SteamHttpRequests(string address)
         
         var jsonResponse = await response.Content.ReadAsStringAsync();
         var storeItemsResponse = JsonSerializer.Deserialize<SteamStoreItemsResponse>(jsonResponse);
-        Dictionary<int, AppRenderedSteamGame> steamGames = new Dictionary<int, AppRenderedSteamGame>();
+        var steamGames = new Dictionary<int, RenderedSteamGame>();
         if(storeItemsResponse != null)
             foreach (var game in storeItemsResponse.StoreItems.StoreGames)
             {
                 var (libraryCapsule, header) = await FetchGameImages(game);
-                steamGames.Add(game.Id, new AppRenderedSteamGame()
+                steamGames.Add(game.Id, new RenderedSteamGame()
                 {
                     Appid = game.Id,
                     Name =  game.Name,
@@ -42,8 +42,7 @@ public class SteamHttpRequests(string address)
 
     private async Task<(Bitmap?,Bitmap?)> FetchGameImages(SteamStoreGame steamStoreGame)
     {
-        if (steamStoreGame.ItemAssets == null
-            || steamStoreGame.ItemAssets.AssetUrlFormat == null 
+        if (steamStoreGame.ItemAssets?.AssetUrlFormat == null 
             || steamStoreGame.ItemAssets.Header == null 
             || steamStoreGame.ItemAssets.LibraryCapsule == null)
         {
@@ -62,7 +61,7 @@ public class SteamHttpRequests(string address)
         return (libraryBitmap, headerBitmap);
     }
 
-    public async Task<BadgeResponse?> FetchUserBadgesAndLevels(SteamID userId)
+    public async Task<BadgesAndLevelsResponse> FetchUserBadgesAndLevels(SteamID userId)
     {
         
         
@@ -70,12 +69,12 @@ public class SteamHttpRequests(string address)
         using var response = await _httpClient.GetAsync(requestLink);
         response.EnsureSuccessStatusCode();
         var jsonResponse = await response.Content.ReadAsStringAsync();
-        var badgesAndLevels = JsonSerializer.Deserialize<BadgeResponse>(jsonResponse);
+        var badgesAndLevels  = JsonSerializer.Deserialize<BadgesAndLevelsData>(jsonResponse);
         
-        return badgesAndLevels;
+        return badgesAndLevels?.Response ?? new BadgesAndLevelsResponse();
     }
 
-    public async Task<RecentlyPlayedGamesResponse?> FetchRecentlyPlayedGames(SteamID userId)
+    public async Task<RecentlyPlayedGamesResponse> FetchRecentlyPlayedGames(SteamID userId)
     {
         var requestLink = _serverUrl + "/recently-played-games?id=" + userId.ConvertToUInt64();
         using var response = await _httpClient.GetAsync(requestLink);

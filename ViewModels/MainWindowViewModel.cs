@@ -19,8 +19,8 @@ public partial class MainWindowViewModel : ViewModelBase
     public MainWindowViewModel()
     {
         _isBarVisible = false;
-
-        var fullServerAddress = Environment.GetEnvironmentVariable("SAH_SERVER_ADDRESS");
+        
+        var fullServerAddress = "banana-slamma.tyrannosaurus-mixolydian.ts.net:9116";
         if (string.IsNullOrEmpty(fullServerAddress))
         {
             CurrentPage = new ErrorWindowViewModel();
@@ -37,6 +37,13 @@ public partial class MainWindowViewModel : ViewModelBase
             mainWindow.IsBarVisible = true;
             mainWindow.CurrentPage = new HomeWindowViewModel(mainWindow.AllSteamData);
         });
+        
+        WeakReferenceMessenger.Default.Register<MainWindowViewModel, LoadingFailedMessage>(this,
+            (mainWindow, message) =>
+            {
+                mainWindow.CurrentPage = new LoginWindowViewModel(fullServerAddress);
+            });
+        
     }
 
     [RelayCommand]

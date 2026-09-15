@@ -1,6 +1,7 @@
 namespace SteamAccountUtility.Messages;
 
-public class ReceiveBadgesAndLevels(BadgeResponse? response)
+public class ReceiveBadgesAndLevels(BadgesAndLevelsResponse response, bool fetchedSuccessfully)
 {
-    public readonly BadgesAndLevelsData? FetchedBadges = response.Response;
+    public readonly BadgesAndLevelsResponse FetchedBadges = response;
+    public readonly bool FetchedSuccessfully = fetchedSuccessfully;
 }

@@ -8,15 +8,15 @@ public partial class HomeWindowViewModel(AllSteamData allSteamData): ViewModelBa
 {
     
     [ObservableProperty] private UserData _currentUser = allSteamData.CurrentUser;
-    [ObservableProperty] private BadgesAndLevelsData _badgeData = 
-        allSteamData.BadgesAndLevels ?? new BadgesAndLevelsData();
+    [ObservableProperty] private BadgesAndLevelsResponse _badgeData = 
+        allSteamData.BadgesAndLevels ?? new BadgesAndLevelsResponse();
 
-    [ObservableProperty] private Dictionary<int, AppRenderedSteamGame> _gameData = 
-        allSteamData.Games ?? new Dictionary<int, AppRenderedSteamGame>();
+    [ObservableProperty] private Dictionary<int, RenderedSteamGame> _gameData = 
+        allSteamData.Games ?? new Dictionary<int, RenderedSteamGame>();
 
     [ObservableProperty] private ObservableCollection<FriendData> _friendsData =
         allSteamData.Friends ?? new ObservableCollection<FriendData>();
 
-    [ObservableProperty] private ObservableCollection<AppRenderedSteamGame> _recentlyPlayedGames =
-        allSteamData.RecentGames ?? new ObservableCollection<AppRenderedSteamGame>();
+    [ObservableProperty] private ObservableCollection<RenderedSteamGame> _recentlyPlayedGames =
+        allSteamData.RecentGames ?? new ObservableCollection<RenderedSteamGame>();
 }

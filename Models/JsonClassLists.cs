@@ -8,19 +8,6 @@ using SteamKit2;
 
 namespace SteamAccountUtility;
 
-public class LoginDetails
-{
-    [JsonPropertyName("username")]
-    public string? Username { get; init; }
-    
-    [JsonPropertyName("guardData")]
-    public string? GuardData { get; init; }
-    
-    [JsonPropertyName("accessToken")]
-    public string? AccessToken { get; init; }
-    
-}
-
 public class GameData
 {
     public GameData()
@@ -199,10 +186,10 @@ public class RefreshTokenJson
 public class AllSteamData
 {
     public required UserData CurrentUser;
-    public required Dictionary<int, AppRenderedSteamGame>? Games;
-    public required ObservableCollection<FriendData>? Friends;
-    public required BadgesAndLevelsData? BadgesAndLevels;
-    public required ObservableCollection<AppRenderedSteamGame>? RecentGames;
+    public required Dictionary<int, RenderedSteamGame> Games;
+    public required ObservableCollection<FriendData> Friends;
+    public required BadgesAndLevelsResponse BadgesAndLevels;
+    public required ObservableCollection<RenderedSteamGame> RecentGames;
     
     public required ObservableCollection<AuxiliaryFriendViewModel>? FriendVm;
     public required ObservableCollection<AuxiliaryGameViewModel>? GameVm;
@@ -210,29 +197,26 @@ public class AllSteamData
     
 }
 
-public class BadgeResponse
-{
-    [JsonPropertyName("response")]
-    public BadgesAndLevelsData? Response { get; init; }
-}
-
 public class BadgesAndLevelsData
 {
-    [JsonPropertyName("badges")]
-    public ObservableCollection<Badge>? Badges { get; init; }
-    
-    [JsonPropertyName("player_xp")]
-    public long? PlayerXp { get; init; }
-    
-    [JsonPropertyName("player_level")]
-    public long? PlayerLevel { get; init; }
-    
+    [JsonPropertyName("response")]
+    public BadgesAndLevelsResponse? Response { get; init; }
+}
+
+public class BadgesAndLevelsResponse
+{
+    [JsonPropertyName("badges")] public ObservableCollection<Badge>? Badges { get; init; } = [];
+
+    [JsonPropertyName("player_xp")] public long? PlayerXp { get; init; } = 0;
+
+    [JsonPropertyName("player_level")] public long? PlayerLevel { get; init; } = 0;
+
     [JsonPropertyName("player_xp_needed_to_level_up")]
-    public long?  NeededXpForLevelUp { get; init; }
-    
+    public long? NeededXpForLevelUp { get; init; } = 0;
+
     [JsonPropertyName("player_xp_needed_current_level")]
-    public long?  NeededXpForCurrentLevel { get; init; }
-    
+    public long? NeededXpForCurrentLevel { get; init; } = 0;
+
 }
 
 public class Badge
@@ -301,7 +285,7 @@ public class SteamStoreItemAssets
 }
 
 
-public class AppRenderedSteamGame
+public class RenderedSteamGame
 {
     [JsonPropertyName("appid")] public int Appid{ get; set; }
     [JsonPropertyName("name")] public string? Name{ get; set; }

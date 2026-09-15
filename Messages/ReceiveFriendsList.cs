@@ -1,9 +1,11 @@
 using System.Collections.Concurrent;
+using System.Collections.ObjectModel;
 using SteamKit2;
 
 namespace SteamAccountUtility.Messages;
 
-public class ReceiveFriendsList(ConcurrentDictionary<SteamID, FriendData>? fl)
+public class ReceiveFriendsList(ObservableCollection<FriendData> friendsList, bool fetchedSuccessfully)
 {
-    public readonly ConcurrentDictionary<SteamID, FriendData>? NewFriendsList = fl;
+    public readonly ObservableCollection<FriendData> NewFriendsList = friendsList;
+    public readonly bool FetchedSuccessfully  = fetchedSuccessfully;
 }

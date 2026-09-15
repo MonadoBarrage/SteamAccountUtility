@@ -24,11 +24,7 @@
                     IsEnabled="{Binding IsLoginButtonEnabled}"
                     Background="Aqua"
                     Command="{Binding LoginToSteamCommand}" />
-            <HyperlinkButton 
-                IsEnabled="{Binding IsLoginButtonEnabled}"
-                NavigateUri="https://steamcommunity.com/dev" 
-                Content="Where to get a Steam API Key?"
-                HorizontalAlignment="Center"/>
+            
         </StackPanel>
 
         <StackPanel Spacing="10">
@@ -46,7 +42,6 @@
                      PasswordChar="*"
                      RevealPassword="False"
                      />
-            
         </StackPanel>
 
     </DockPanel>
