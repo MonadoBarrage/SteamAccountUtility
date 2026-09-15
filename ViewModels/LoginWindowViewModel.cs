@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Text.Json;
@@ -10,8 +9,8 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using SteamAccountUtility.Messages;
 using SteamAccountUtility.Models;
-using SteamKit2;
-
+using SteamAccountUtility.Services;
+using SteamAccountUtility.ViewModels.AuxiliaryViewModels;
 namespace SteamAccountUtility.ViewModels;
 
 public partial class LoginWindowViewModel: ViewModelBase
@@ -153,10 +152,8 @@ public partial class LoginWindowViewModel: ViewModelBase
     {
         if (Interlocked.Decrement(ref _remainingFetches) == 0)
         {
-            Console.WriteLine("worked");
             _loginTaskCompletionSource.TrySetResult(true);
         }
-        Console.WriteLine("What is fetched: {0}", _remainingFetches);
     }
 
     [RelayCommand]
@@ -185,7 +182,7 @@ public partial class LoginWindowViewModel: ViewModelBase
             IsLoginButtonEnabled = true;
             return;
         }
-        Console.WriteLine("Login successful");
+
         var friendViewModels = new ObservableCollection<AuxiliaryFriendViewModel>();
         var gameViewModels = new ObservableCollection<AuxiliaryGameViewModel>();
         var recentlyPlayedGamesViewModels = new ObservableCollection<RenderedSteamGame>();

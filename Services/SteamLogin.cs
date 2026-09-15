@@ -7,10 +7,11 @@ using System.Timers;
 using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.Messaging;
 using SteamAccountUtility.Messages;
+using SteamAccountUtility.Models;
 using SteamKit2;
 using SteamKit2.Authentication;
 
-namespace SteamAccountUtility.Models;
+namespace SteamAccountUtility.Services;
 
 internal sealed class SteamLogin(string serverAddress) : IDisposable
 {

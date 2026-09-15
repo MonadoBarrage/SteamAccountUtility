@@ -1,7 +1,9 @@
 using System;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-namespace SteamAccountUtility.ViewModels;
+using SteamAccountUtility.Models;
+
+namespace SteamAccountUtility.ViewModels.AuxiliaryViewModels;
 
 public partial class AuxiliaryFriendViewModel(FriendData fd): ViewModelBase
 {

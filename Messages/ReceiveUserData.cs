@@ -1,4 +1,5 @@
 namespace SteamAccountUtility.Messages;
+using SteamAccountUtility.Models;
 
 public class ReceiveUserData(UserData ud, bool fetchedSuccessfully)
 {

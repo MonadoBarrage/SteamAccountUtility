@@ -1,8 +1,7 @@
-using System;
 using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
+using SteamAccountUtility.Models;
 
-namespace SteamAccountUtility.ViewModels;
+namespace SteamAccountUtility.ViewModels.AuxiliaryViewModels;
 
 public partial class AuxiliaryGameViewModel(RenderedSteamGame gameData): ViewModelBase
 {

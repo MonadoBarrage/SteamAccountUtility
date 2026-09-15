@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Avalonia.Media.Imaging;
+using SteamAccountUtility.Models;
 using SteamKit2;
-namespace SteamAccountUtility.Models;
+namespace SteamAccountUtility.Services;
 
 using System.Net.Http;
 using System.Text.Json;
