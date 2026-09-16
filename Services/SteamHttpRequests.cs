@@ -15,86 +15,125 @@ public class SteamHttpRequests(string address)
     private readonly HttpClient _httpClient = new();
 
     private readonly string _serverUrl = "http://" + address;
+    
+    
     public async Task<Dictionary<int, RenderedSteamGame>?> FetchUserGameLibrary(SteamID userId)
     {
-        var requestLink = _serverUrl + "/owned-games?id=" + userId.ConvertToUInt64();
-        using var response = await _httpClient.GetAsync(requestLink);
-        response.EnsureSuccessStatusCode();
-        
-        var jsonResponse = await response.Content.ReadAsStringAsync();
-        var storeItemsResponse = JsonSerializer.Deserialize<SteamStoreItemsResponse>(jsonResponse);
-        var steamGames = new Dictionary<int, RenderedSteamGame>();
-        if(storeItemsResponse != null)
+        try
+        {
+            var requestLink = _serverUrl + "/owned-games?id=" + userId.ConvertToUInt64();
+            using var response = await _httpClient.GetAsync(requestLink);
+            response.EnsureSuccessStatusCode();
+
+            var jsonResponse = await response.Content.ReadAsStringAsync();
+            var storeItemsResponse = JsonSerializer.Deserialize<SteamStoreItemsResponse>(jsonResponse);
+            var steamGames = new Dictionary<int, RenderedSteamGame>();
+            if (storeItemsResponse == null)
+                return [];
+
             foreach (var game in storeItemsResponse.StoreItems.StoreGames)
             {
                 var (libraryCapsule, header) = await FetchGameImages(game);
                 steamGames.Add(game.Id, new RenderedSteamGame()
                 {
                     Appid = game.Id,
-                    Name =  game.Name,
+                    Name = game.Name,
                     LibraryImage = libraryCapsule,
                     Header = header
                 });
             }
-        
-        return steamGames;
-
-    }
-
-    private async Task<(Bitmap?,Bitmap?)> FetchGameImages(SteamStoreGame steamStoreGame)
-    {
-        if (steamStoreGame.ItemAssets?.AssetUrlFormat == null 
-            || steamStoreGame.ItemAssets.Header == null 
-            || steamStoreGame.ItemAssets.LibraryCapsule == null)
-        {
-            return (null, null);
+            return steamGames;
         }
-        
-        var requestLink = "https://shared.fastly.steamstatic.com/store_item_assets/" 
-            + steamStoreGame.ItemAssets.AssetUrlFormat;
-        
-        
-        var libraryImage = requestLink.Replace("${FILENAME}",steamStoreGame.ItemAssets.LibraryCapsule); 
-        var headerImage = requestLink.Replace("${FILENAME}",steamStoreGame.ItemAssets.Header);
-        var libraryBitmap = await CreateBitmapImage(libraryImage);
-        var headerBitmap = await CreateBitmapImage(headerImage);
-        
-        return (libraryBitmap, headerBitmap);
+        catch (Exception e)
+        {
+            await Console.Error.WriteLineAsync(e.Message);
+            return null;
+        }
     }
 
-    public async Task<BadgesAndLevelsResponse> FetchUserBadgesAndLevels(SteamID userId)
+    private async Task<(Bitmap?, Bitmap?)> FetchGameImages(SteamStoreGame steamStoreGame)
     {
-        
-        
-        var requestLink = _serverUrl + "/badges-and-levels?id=" + userId.ConvertToUInt64();
-        using var response = await _httpClient.GetAsync(requestLink);
-        response.EnsureSuccessStatusCode();
-        var jsonResponse = await response.Content.ReadAsStringAsync();
-        var badgesAndLevels  = JsonSerializer.Deserialize<BadgesAndLevelsData>(jsonResponse);
-        
-        return badgesAndLevels?.Response ?? new BadgesAndLevelsResponse();
+        try
+        {
+            if (steamStoreGame.ItemAssets?.AssetUrlFormat == null
+                || steamStoreGame.ItemAssets.Header == null
+                || steamStoreGame.ItemAssets.LibraryCapsule == null)
+            {
+                return (null, null);
+            }
+
+            var requestLink = "https://shared.fastly.steamstatic.com/store_item_assets/"
+                              + steamStoreGame.ItemAssets.AssetUrlFormat;
+
+
+            var libraryImage = requestLink.Replace("${FILENAME}", steamStoreGame.ItemAssets.LibraryCapsule);
+            var headerImage = requestLink.Replace("${FILENAME}", steamStoreGame.ItemAssets.Header);
+            var libraryBitmap = await CreateBitmapImage(libraryImage);
+            var headerBitmap = await CreateBitmapImage(headerImage);
+
+            return (libraryBitmap, headerBitmap);
+        }
+        catch (Exception e)
+        {
+            await Console.Error.WriteLineAsync(e.Message);
+            return (null,null);
+        }
     }
 
-    public async Task<RecentlyPlayedGamesResponse> FetchRecentlyPlayedGames(SteamID userId)
+    public async Task<BadgesAndLevelsResponse?> FetchUserBadgesAndLevels(SteamID userId)
     {
-        var requestLink = _serverUrl + "/recently-played-games?id=" + userId.ConvertToUInt64();
-        using var response = await _httpClient.GetAsync(requestLink);
-        response.EnsureSuccessStatusCode();
-        var jsonResponse = await response.Content.ReadAsStringAsync();
-        var recentlyPlayedGames = JsonSerializer.Deserialize<RecentlyPlayedGamesResponse>(jsonResponse);
         
-        return recentlyPlayedGames;
+        try {
+            var requestLink = _serverUrl + "/badges-and-levels?id=" + userId.ConvertToUInt64();
+            using var response = await _httpClient.GetAsync(requestLink);
+            response.EnsureSuccessStatusCode();
+            var jsonResponse = await response.Content.ReadAsStringAsync();
+            var badgesAndLevels  = JsonSerializer.Deserialize<BadgesAndLevelsData>(jsonResponse);
+            
+            return badgesAndLevels?.Response ?? new BadgesAndLevelsResponse();
+        }
+        catch (Exception e)
+        {
+            await Console.Error.WriteLineAsync(e.Message);
+            return null;
+        }
+    }
+
+    public async Task<RecentlyPlayedGamesResponse?> FetchRecentlyPlayedGames(SteamID userId)
+    {
+        try
+        {
+            var requestLink = _serverUrl + "/recently-played-games?id=" + userId.ConvertToUInt64();
+            using var response = await _httpClient.GetAsync(requestLink);
+            response.EnsureSuccessStatusCode();
+            var jsonResponse = await response.Content.ReadAsStringAsync();
+            var recentlyPlayedGames = JsonSerializer.Deserialize<RecentlyPlayedGamesResponse>(jsonResponse);
+
+            return recentlyPlayedGames;
+        }
+        catch (Exception e)
+        {
+            await Console.Error.WriteLineAsync(e.Message);
+            return null;
+        }
     }
     
     public async Task<Bitmap?> FetchUserAvatar(byte[]? avatarHash)
     {
-        var requestLink = "https://avatars.fastly.steamstatic.com/";
-        requestLink += ConvertByteArrayToString(avatarHash);
-        requestLink += "_full.jpg";
-        
-        var response = await CreateBitmapImage(requestLink);
-        return response;
+        try
+        {
+            var requestLink = "https://avatars.fastly.steamstatic.com/";
+            requestLink += ConvertByteArrayToString(avatarHash);
+            requestLink += "_full.jpg";
 
+            var response = await CreateBitmapImage(requestLink);
+            return response;
+        }
+        catch(Exception e)
+        {
+            await Console.Error.WriteLineAsync(e.Message);
+            return null;
+        }
     }
 
     private async Task<Bitmap?> CreateBitmapImage(string requestLink)
@@ -106,8 +145,9 @@ public class SteamHttpRequests(string address)
             using var stream = new MemoryStream(bytes);
             return new Bitmap(stream);
         }
-        catch (Exception)
+        catch (Exception e)
         {
+            await Console.Error.WriteLineAsync(e.Message);
             return null;
         }
 
@@ -115,6 +155,8 @@ public class SteamHttpRequests(string address)
     
     private static string ConvertByteArrayToString(byte[]? hash)
     {
-        return (hash == null ? "" : BitConverter.ToString(hash).Replace("-", "").ToLower());
+        return hash == null ? "" : BitConverter.ToString(hash).Replace("-", "").ToLower();
     }
+    
+
 }

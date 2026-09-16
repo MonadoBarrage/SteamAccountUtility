@@ -135,8 +135,8 @@ public class AllSteamData
     public required BadgesAndLevelsResponse BadgesAndLevels;
     public required ObservableCollection<RenderedSteamGame> RecentGames;
     
-    public required ObservableCollection<AuxiliaryFriendViewModel>? FriendVm;
-    public required ObservableCollection<AuxiliaryGameViewModel>? GameVm;
+    public required ObservableCollection<AuxiliaryFriendViewModel> FriendVm;
+    public required ObservableCollection<AuxiliaryGameViewModel> GameVm;
     
     
 }

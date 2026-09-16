@@ -1,4 +1,4 @@
-namespace SteamAccountUtility.ViewModels;
+namespace SteamAccountUtility.ViewModels.AuxiliaryViewModels;
 
 public class LoadingViewModel
 {

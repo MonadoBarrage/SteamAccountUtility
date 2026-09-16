@@ -9,12 +9,9 @@
         Icon="/Assets/avalonia-logo.ico"
         Title="SteamAccountUtility"
         TransparencyLevelHint="AcrylicBlur"
-        Background="White">
-
-
-
-    <!-- <TextBlock Text="{Binding Greeting}" HorizontalAlignment="Center" VerticalAlignment="Center"/> -->
-
+        Background="White"
+        WindowStartupLocation="CenterScreen">
+    
     <DockPanel>
         <Border DockPanel.Dock="Top" Background="SteelBlue">
         <CommandBar Background="Transparent" HorizontalAlignment="Center" IsVisible="{Binding IsBarVisible }">
