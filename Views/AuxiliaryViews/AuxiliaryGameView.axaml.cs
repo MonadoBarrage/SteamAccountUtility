@@ -1,6 +1,6 @@
 using Avalonia.Controls;
 
-namespace SteamAccountUtility.Views;
+namespace SteamAccountUtility.Views.AuxiliaryViews;
 
 public partial class AuxiliaryGameView : UserControl
 {

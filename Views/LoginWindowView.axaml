@@ -14,7 +14,7 @@
         <StackPanel DockPanel.Dock="Bottom">
 
             <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="18" Foreground="IndianRed"
-                       Text="{Binding LoadingMessage}" />
+                       Text="{Binding ErrorMessage}" />
 
             <!-- <CheckBox HorizontalAlignment="Center" IsChecked="{Binding CheckForSavedCredentials}">Save Login Details</CheckBox> -->
             

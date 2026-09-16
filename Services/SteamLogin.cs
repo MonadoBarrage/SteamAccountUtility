@@ -2,14 +2,17 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
 using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.Messaging;
 using SteamAccountUtility.Messages;
 using SteamAccountUtility.Models;
+using SteamAccountUtility.ViewModels.AuxiliaryViewModels;
 using SteamKit2;
 using SteamKit2.Authentication;
+using Timer = System.Timers.Timer;
 
 namespace SteamAccountUtility.Services;
 
@@ -33,7 +36,7 @@ internal sealed class SteamLogin(string serverAddress) : IDisposable
 
     
     private readonly ConcurrentDictionary<SteamID, FriendData> _friendsDictionary = new();
-    private readonly ObservableCollection<FriendData> _friendsCollection = new();
+    
     
     
     private bool _isRunning;
@@ -47,11 +50,26 @@ internal sealed class SteamLogin(string serverAddress) : IDisposable
     private readonly Timer _loginTimer = new (30000);
     private readonly SteamHttpRequests  _steamHttpRequests = new(serverAddress);
     
-   
+    private int _remainingFetches = 5;
+    private readonly TaskCompletionSource<bool> _loginTaskCompletionSource = new();
+    
+    
+    private readonly ObservableCollection<FriendData> _friendsCollection = new();
+    private UserData _userData;
+    private Dictionary<int, RenderedSteamGame> _gamesList;
+    private BadgesAndLevelsResponse _badgesAndLevels = new();
+    private List<int> _recentlyPlayedGamesResponse = [];
 
+    private void CompleteCallback()
+    {
+        if (Interlocked.Decrement(ref _remainingFetches) == 0)
+        {
+            _loginTaskCompletionSource.TrySetResult(true);
+        }
+        Console.WriteLine("Fetched remaining: {0}", _remainingFetches);
+    }
     
-    
-    private void QuitProgram(Object source, ElapsedEventArgs e)
+    private void QuitProgram(Object? source, ElapsedEventArgs e)
     {
         _steamClient?.Disconnect();
         WeakReferenceMessenger.Default.Send(new LoadingFailedMessage());
@@ -68,11 +86,20 @@ internal sealed class SteamLogin(string serverAddress) : IDisposable
         _loginTimer.AutoReset = false;
         _loginTimer.Enabled = true;
     }
-    
-    public async Task InitializeClient(bool useAutoLogin = false)
+
+    public async Task<AllSteamData?> LoginToSteam()
     {
         
-        SetTimer();
+        _ = InitializeClient();
+        var didClientFetchData = await _loginTaskCompletionSource.Task;
+        
+        return didClientFetchData ? CreateAllSteamData() : null;
+    }
+    
+    
+    private async Task InitializeClient(bool useAutoLogin = false)
+    {
+        
         _steamClient = new SteamClient();
 
         _manager = new CallbackManager(_steamClient);
@@ -88,7 +115,7 @@ internal sealed class SteamLogin(string serverAddress) : IDisposable
         _manager.Subscribe<SteamUser.LoggedOffCallback>(OnLoggedOff);
 
         _manager.Subscribe<SteamUser.AccountInfoCallback>(OnAccountInfo);
-        _manager.Subscribe<SteamFriends.FriendsListCallback>(OnFriendsList);
+        _manager.Subscribe<SteamFriends.FriendsListCallback>(GetFriendsList);
         _manager.Subscribe<SteamFriends.PersonaStateCallback>(OnPersonaState);
         
         _isRunning = true;
@@ -99,8 +126,43 @@ internal sealed class SteamLogin(string serverAddress) : IDisposable
         
         while (_isRunning)
             await _manager.RunWaitCallbackAsync();
+        
+        
     }
 
+
+    private AllSteamData CreateAllSteamData()
+    {
+        var friendViewModels = new ObservableCollection<AuxiliaryFriendViewModel>();
+        var gameViewModels = new ObservableCollection<AuxiliaryGameViewModel>();
+        var recentlyPlayedGamesViewModels = new ObservableCollection<RenderedSteamGame>();
+        
+        foreach (var f in _friendsCollection)
+        {
+            friendViewModels.Add(new AuxiliaryFriendViewModel(f));
+        }
+        foreach (var g in _gamesList)
+        {
+            gameViewModels.Add(new AuxiliaryGameViewModel(g.Value));
+        }
+        
+        foreach (var recentIds in _recentlyPlayedGamesResponse)
+        {
+            if(_gamesList.TryGetValue(recentIds, out var game))
+                recentlyPlayedGamesViewModels.Add(game);
+        }
+        
+        return new AllSteamData()
+        {
+            CurrentUser =  _userData,
+            Friends = _friendsCollection,
+            Games = _gamesList,
+            FriendVm = friendViewModels,
+            GameVm =  gameViewModels,
+            BadgesAndLevels = _badgesAndLevels,
+            RecentGames = recentlyPlayedGamesViewModels
+        };
+    }
     
     
     private async void OnConnected(SteamClient.ConnectedCallback callback)
@@ -111,13 +173,11 @@ internal sealed class SteamLogin(string serverAddress) : IDisposable
 
             const bool shouldRememberPassword = true;
             
-            WeakReferenceMessenger.Default.Send(
-                new UpdateLoginMessage("Use the Steam Guard App to approve this login", false));
+           
 
             if (_steamClient == null || _steamUser == null)
             {
-                WeakReferenceMessenger.Default.Send(
-                    new UpdateLoginMessage("Error: cannot log in", true));
+                
                 _isRunning = false;
                 return;
             }
@@ -152,8 +212,6 @@ internal sealed class SteamLogin(string serverAddress) : IDisposable
         }
         catch (Exception e)
         {
-            WeakReferenceMessenger.Default.Send(
-                new UpdateLoginMessage("Error: cannot log in", true));
             _isRunning = false;
             Console.WriteLine(e);
         }
@@ -173,12 +231,6 @@ internal sealed class SteamLogin(string serverAddress) : IDisposable
             
             if (callback.Result != EResult.OK || _steamFriends == null || _steamUser == null || _steamUser.SteamID == null)
             {
-
-                // Console.WriteLine("Unable to logon to Steam: {0} / {1}", callback.Result, callback.ExtendedResult);
-
-                // WeakReferenceMessenger.Default.Send(
-                //     new UpdateLoginMessage("Error: cannot log in", true));
-
                 WeakReferenceMessenger.Default.Send(new LoadingFailedMessage());
                 
                 _isRunning = false;
@@ -191,11 +243,12 @@ internal sealed class SteamLogin(string serverAddress) : IDisposable
             _ = GetGameList();
             _ = GetBadgesAndLevels();
             _ = GetRecentlyPlayedGames();
+            
+            
+            
         }
         catch (Exception e)
         {
-            WeakReferenceMessenger.Default.Send(
-                new UpdateLoginMessage("Error: cannot log in", true));
             _isRunning = false;
             Console.WriteLine(e);
         }
@@ -208,33 +261,10 @@ internal sealed class SteamLogin(string serverAddress) : IDisposable
 #endif
     }
     
-    
 
     private void OnAccountInfo(SteamUser.AccountInfoCallback callback)
     {
         _steamFriends?.SetPersonaState(EPersonaState.Online);
-    }
-
-    private async void OnFriendsList(SteamFriends.FriendsListCallback callback)
-    {
-        try
-        {
-            if (_steamFriends == null || _steamUser == null) return;
-            
-            for (var x = 0; x < _steamFriends.GetFriendCount(); x++)
-            {
-                var steamIdFriend = _steamFriends.GetFriendByIndex(x);
-                if (steamIdFriend == _steamUser.SteamID) continue;
-               
-                await _steamFriends.RequestProfileInfo(steamIdFriend);
-            }
-            
-            WeakReferenceMessenger.Default.Send(new ReceiveFriendsList(_friendsCollection, true));
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e);
-        }
     }
 
     private async void OnPersonaState(SteamFriends.PersonaStateCallback callback)
@@ -244,18 +274,7 @@ internal sealed class SteamLogin(string serverAddress) : IDisposable
             if (_steamUser == null || _steamUser.SteamID == null) return;
             if (callback.FriendID == _steamUser.SteamID)
             {
-
-               var newAvatarPhoto = await _steamHttpRequests.FetchUserAvatar(callback.AvatarHash);
-
-                var ud = new UserData()
-                {
-                    SteamID = callback.FriendID,
-                    ProfileName = callback.Name,
-                    AvatarHash = callback.AvatarHash,
-                    AvatarIcon = newAvatarPhoto,
-                };
-
-                WeakReferenceMessenger.Default.Send(new ReceiveUserData(ud, true));
+                _ = GetUserProfile(callback);
                 return;
             }
 
@@ -281,19 +300,69 @@ internal sealed class SteamLogin(string serverAddress) : IDisposable
             Console.WriteLine(e);
         }
     }
-    
+
+
+    private async Task GetUserProfile(SteamFriends.PersonaStateCallback callback)
+    {
+        var newAvatarPhoto = await _steamHttpRequests.FetchUserAvatar(callback.AvatarHash);
+
+        var ud = new UserData()
+        {
+            SteamID = callback.FriendID,
+            ProfileName = callback.Name,
+            AvatarHash = callback.AvatarHash,
+            AvatarIcon = newAvatarPhoto,
+        };
+
+        Console.WriteLine("Completed user profile");
+        _userData = ud;
+        CompleteCallback();
+        // WeakReferenceMessenger.Default.Send(new ReceiveUserData(ud, true));
+    }
+
+    private async void GetFriendsList(SteamFriends.FriendsListCallback callback)
+    {
+        try
+        {
+            if (_steamFriends == null || _steamUser == null) return;
+            
+            for (var x = 0; x < _steamFriends.GetFriendCount(); x++)
+            {
+                var steamIdFriend = _steamFriends.GetFriendByIndex(x);
+                if (steamIdFriend == _steamUser.SteamID) continue;
+               
+                await _steamFriends.RequestProfileInfo(steamIdFriend);
+            }
+            
+            Console.WriteLine("Completed friends list");
+            CompleteCallback();
+            
+            // WeakReferenceMessenger.Default.Send(new ReceiveFriendsList(_friendsCollection, true));
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+        }
+    }
     
     private async Task GetGameList()
     {
         if (_steamUser == null || _steamUser.SteamID == null) return;
 
         var sid = new SteamID(_steamUser.SteamID);
-        Dictionary<int, RenderedSteamGame> gamesLibrary = await _steamHttpRequests.FetchUserGameLibrary(sid);
-
-        if(gamesLibrary != null)
-            WeakReferenceMessenger.Default.Send(new ReceiveGameList(gamesLibrary, true));
-        else
-            WeakReferenceMessenger.Default.Send(new StopFetchingInfoMessage());
+ 
+        _gamesList = await _steamHttpRequests.FetchUserGameLibrary(sid);;
+        
+        Console.WriteLine("Completed game list");
+        
+        CompleteCallback();
+        
+        // if(gamesLibrary != null)
+        // {
+        //     WeakReferenceMessenger.Default.Send(new ReceiveGameList(gamesLibrary, true));
+        // }
+        // else
+        //     WeakReferenceMessenger.Default.Send(new StopFetchingInfoMessage());
     }
     
     private async Task GetBadgesAndLevels()
@@ -302,10 +371,11 @@ internal sealed class SteamLogin(string serverAddress) : IDisposable
         {
             if (_steamUser == null || _steamUser.SteamID == null) return;
             var sid = new SteamID(_steamUser.SteamID);
-
-            var badgesAndLevels = await _steamHttpRequests.FetchUserBadgesAndLevels(sid);
-
-            WeakReferenceMessenger.Default.Send(new ReceiveBadgesAndLevels(badgesAndLevels, true));
+            
+            _badgesAndLevels = await _steamHttpRequests.FetchUserBadgesAndLevels(sid);
+            Console.WriteLine("Completed badges and levels");
+            CompleteCallback();
+            // WeakReferenceMessenger.Default.Send(new ReceiveBadgesAndLevels(badgesAndLevels, true));
         }
         catch (Exception e)
         {
@@ -331,9 +401,13 @@ internal sealed class SteamLogin(string serverAddress) : IDisposable
                     gameIDs.Add(game.AppId);
                 }
             }
+
+            _recentlyPlayedGamesResponse = gameIDs;
             
+            Console.WriteLine("Completed recently played games");
+            CompleteCallback();
             
-            WeakReferenceMessenger.Default.Send(new ReceiveRecentlyPlayedGames(gameIDs,true));
+            // WeakReferenceMessenger.Default.Send(new ReceiveRecentlyPlayedGames(gameIDs,true));
         }
         catch (Exception e)
         {

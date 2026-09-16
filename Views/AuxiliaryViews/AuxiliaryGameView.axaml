@@ -4,8 +4,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:SteamAccountUtility.ViewModels.AuxiliaryViewModels"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="SteamAccountUtility.Views.AuxiliaryFriendView"
-             x:DataType="vm:AuxiliaryFriendViewModel"
+             x:Class="SteamAccountUtility.Views.AuxiliaryViews.AuxiliaryGameView"
+             x:DataType="vm:AuxiliaryGameViewModel"
              Width="200">
     <UserControl.Resources>
         <DrawingImage x:Key="CoverFallback">
@@ -15,7 +15,8 @@
                         <RectangleGeometry  Rect="-2 -2 28 28" />
                     </GeometryDrawing>
                     <GeometryDrawing Brush="White"
-                                     Geometry="{DynamicResource person_icon}" />
+                                     Geometry="{DynamicResource game_icon}" 
+                                     />
                 </DrawingGroup>
 
             </DrawingImage.Drawing>
@@ -23,15 +24,17 @@
     </UserControl.Resources>
     
     <!-- <Button Command="{Binding YayCommand}"> -->
-    <StackPanel Spacing="5" Width="200">
-        <Border CornerRadius="10" ClipToBounds="True" Background="#7FFF22DD">
-            <!-- <Button Command="{Binding YayCommand}"> -->
-            <Image Width="200" Height="200"
-                   Stretch="Uniform"
-                   Source="{Binding Friend.AvatarIcon}" />
-            <!-- </Button> -->
-        </Border>
-        <TextBlock Text="{Binding Friend.ProfileName }"/>
-    </StackPanel>
+        <StackPanel Spacing="5" Width="200">
+            <Border CornerRadius="10" ClipToBounds="True" Background="#7FFF22DD">
+                <Button >
+                <Image Width="200" Height="200"
+                       Stretch="Uniform"
+                       Source="{Binding Game.LibraryImage}"
+                       />
+                <!-- Source="{StaticResource CoverFallback}"  -->
+                </Button>
+            </Border>
+            <TextBlock TextWrapping="Wrap" Text="{Binding Game.Name} "/>
+        </StackPanel>
     <!-- </Button> -->
 </UserControl>
