@@ -1,6 +1,3 @@
 namespace SteamAccountUtility.ViewModels;
 
-public partial class ErrorWindowViewModel: ViewModelBase
-{
-    
-}
+public partial class ErrorWindowViewModel : ViewModelBase { }

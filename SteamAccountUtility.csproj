@@ -12,16 +12,18 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="AnimatedImage.Avalonia" Version="2.1.4" />
     <PackageReference Include="Avalonia" Version="12.1.2" />
     <PackageReference Include="Avalonia.Desktop" Version="12.1.2" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.2" />
     <PackageReference Include="Avalonia.Fonts.Inter" Version="12.1.2" />
+    <PackageReference Include="Avalonia.Themes.Simple" Version="12.1.2" />
     <PackageReference Include="AvaloniaUI.DiagnosticsSupport" Version="2.2.3">
       <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
       <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
     </PackageReference>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
-    <PackageReference Include="Duende.IdentityModel" Version="8.1.0" />
+    <PackageReference Include="QRCoder" Version="1.8.0" />
     <PackageReference Include="SteamKit2" Version="3.4.0" />
   </ItemGroup>
 
@@ -46,12 +48,24 @@
       <DependentUpon>GameView.axaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="Views\AuxilliaryViews\AuxiliaryFriendView.axaml.cs">
+    <Compile Update="Views\AuxiliaryFriendView.axaml.cs">
       <DependentUpon>AuxiliaryFriendView.axaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="Views\AuxilliaryViews\AuxiliaryGameView.axaml.cs">
+    <Compile Update="Views\AuxiliaryGameView.axaml.cs">
       <DependentUpon>AuxiliaryGameView.axaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\AuxiliaryFriendView.axaml.cs">
+      <DependentUpon>AuxiliaryFriendView.axaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\AuxiliaryGameView.axaml.cs">
+      <DependentUpon>AuxiliaryGameView.axaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\LoadingView.axaml.cs">
+      <DependentUpon>LoadingView.axaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>

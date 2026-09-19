@@ -2,9 +2,9 @@ using Avalonia.Controls;
 
 namespace SteamAccountUtility.Views;
 
-public partial class HomeWindowView : UserControl
+public partial class LoginWithDefaultView : UserControl
 {
-    public HomeWindowView()
+    public LoginWithDefaultView()
     {
         InitializeComponent();
     }

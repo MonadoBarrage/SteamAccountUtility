@@ -11,22 +11,22 @@ public class FriendData
     public required SteamID SteamID { get; set; }
     public required string ProfileName { get; set; }
     public byte[]? AvatarHash { get; set; }
-    
+
     public string? AvatarURI { get; set; }
     public Bitmap? AvatarIcon { get; set; }
 
     public bool ValidateData()
     {
-        if (!SteamID.Equals(new SteamID()) && 
-            !string.IsNullOrEmpty(ProfileName)
-           ) return true;
+        if (!SteamID.Equals(new SteamID()) && !string.IsNullOrEmpty(ProfileName))
+            return true;
         return false;
     }
+
     public void PrintAll()
     {
-        Console.WriteLine("SteamID: {0}",SteamID);
-        Console.WriteLine("ProfileName: {0}",ProfileName);
-        Console.WriteLine("AvatarURI: {0}",AvatarURI);
-        Console.WriteLine("AvatarHash: {0}",AvatarHash);
+        Console.WriteLine("SteamID: {0}", SteamID);
+        Console.WriteLine("ProfileName: {0}", ProfileName);
+        Console.WriteLine("AvatarURI: {0}", AvatarURI);
+        Console.WriteLine("AvatarHash: {0}", AvatarHash);
     }
 }

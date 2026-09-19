@@ -1,11 +1,12 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
-using SteamAccountUtility.ViewModels.AuxiliaryViewModels;
+using SteamAccountUtility.ViewModels;
 
 namespace SteamAccountUtility.ViewModels;
 
-public partial class FriendListViewModel(ObservableCollection<AuxiliaryFriendViewModel> fl) : ViewModelBase
+public partial class FriendListViewModel(ObservableCollection<AuxiliaryFriendViewModel> fl)
+    : ViewModelBase
 {
-    [ObservableProperty] private ObservableCollection<AuxiliaryFriendViewModel> _friendlist = fl;
-    
+    [ObservableProperty]
+    private ObservableCollection<AuxiliaryFriendViewModel> _friendlist = fl;
 }

@@ -1,49 +1,58 @@
-<Window xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vm="using:SteamAccountUtility.ViewModels"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-        x:Class="SteamAccountUtility.Views.MainWindow"
-        x:DataType="vm:MainWindowViewModel"
-        Icon="/Assets/avalonia-logo.ico"
-        Title="SteamAccountUtility"
-        TransparencyLevelHint="AcrylicBlur"
-        Background="White"
-        WindowStartupLocation="CenterScreen">
-    
-    <DockPanel>
-        <Border DockPanel.Dock="Top" Background="SteelBlue">
-        <CommandBar Background="Transparent" HorizontalAlignment="Center" IsVisible="{Binding IsBarVisible }">
-            
-            <CommandBar.PrimaryCommands>
-                <CommandBarButton Label="Home" 
-                                  Command="{Binding GoToHomePageCommand}">
-                    <!-- <CommandBarButton.Icon> -->
-                    <!--     <PathIcon Data="{StaticResource AddIcon}" /> -->
-                    <!-- </CommandBarButton.Icon> -->
-                </CommandBarButton >
-                <CommandBarButton Label="Games" 
-                                  Command="{Binding GoToGameLibraryPageCommand}" >
-                    <!-- <CommandBarButton.Icon> -->
-                    <!--     <PathIcon Data="{StaticResource EditIcon}" /> -->
-                    <!-- </CommandBarButton.Icon> -->
-                </CommandBarButton>
-                <CommandBarButton Label="Friends"
-                                  Command="{Binding GoToFriendsPageCommand}">
-                    <!-- <CommandBarButton.Icon> -->
-                    <!--     <PathIcon Data="{StaticResource DeleteIcon}" /> -->
-                    <!-- </CommandBarButton.Icon> -->
-                </CommandBarButton>
-                <CommandBarButton Label="Randomizer"
-                                  Command="{Binding GoToGameRandomizerPageCommand}">
-                    
-                </CommandBarButton>
-            </CommandBar.PrimaryCommands>
-        </CommandBar>
-        </Border>
-        <!-- <Button Command="{Binding ChangeBoolCommand}"> BOom</Button> -->
-        <TransitioningContentControl Content="{Binding CurrentPage}"/>
-    </DockPanel>
-    
+<Window
+  xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:vm="using:SteamAccountUtility.ViewModels"
+  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  mc:Ignorable="d"
+  d:DesignWidth="800"
+  d:DesignHeight="450"
+  x:Class="SteamAccountUtility.Views.MainWindow"
+  x:DataType="vm:MainWindowViewModel"
+  Icon="/Assets/avalonia-logo.ico"
+  Title="SteamAccountUtility"
+  TransparencyLevelHint="AcrylicBlur"
+  WindowStartupLocation="CenterScreen"
+  MinWidth="455"
+>
+  <Window.Background>
+    <ImageBrush
+      Source="avares://SteamAccountUtility/Assets/MountainBackground2.png"
+      Stretch="Fill"
+    />
+  </Window.Background>
+  <DockPanel>
+    <Border DockPanel.Dock="Top" Background="#171d25">
+      <CommandBar
+        Background="Transparent"
+        HorizontalAlignment="Center"
+        IsVisible="{Binding IsBarVisible }"
+        Foreground="#dcdedf"
+      >
+        <CommandBar.PrimaryCommands>
+          <CommandBarButton Label="Home" Command="{Binding GoToHomePageCommand}">
+            <!-- <CommandBarButton.Icon> -->
+            <!--     <PathIcon Data="{StaticResource AddIcon}" /> -->
+            <!-- </CommandBarButton.Icon> -->
+          </CommandBarButton>
+          <CommandBarButton Label="Games" Command="{Binding GoToGameLibraryPageCommand}">
+            <!-- <CommandBarButton.Icon> -->
+            <!--     <PathIcon Data="{StaticResource EditIcon}" /> -->
+            <!-- </CommandBarButton.Icon> -->
+          </CommandBarButton>
+          <CommandBarButton Label="Friends" Command="{Binding GoToFriendsPageCommand}">
+            <!-- <CommandBarButton.Icon> -->
+            <!--     <PathIcon Data="{StaticResource DeleteIcon}" /> -->
+            <!-- </CommandBarButton.Icon> -->
+          </CommandBarButton>
+          <CommandBarButton
+            Label="Randomizer"
+            Command="{Binding GoToGameRandomizerPageCommand}"
+          ></CommandBarButton>
+        </CommandBar.PrimaryCommands>
+      </CommandBar>
+    </Border>
+    <!-- <Button Command="{Binding ChangeBoolCommand}"> BOom</Button> -->
+    <TransitioningContentControl Content="{Binding CurrentPage}" />
+  </DockPanel>
 </Window>

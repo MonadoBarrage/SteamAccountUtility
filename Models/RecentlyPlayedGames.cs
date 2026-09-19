@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Text.Json.Serialization;
+
 namespace SteamAccountUtility.Models;
 
 public class RecentlyPlayedGamesResponse
@@ -12,7 +13,7 @@ public class RecentlyPlayedGamesData
 {
     [JsonPropertyName("total_count")]
     public long TotalCount { get; init; }
-    
+
     [JsonPropertyName("games")]
     public ObservableCollection<GameData>? Games { get; init; }
 }

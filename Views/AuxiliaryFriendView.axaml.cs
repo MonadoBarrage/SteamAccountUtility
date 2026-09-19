@@ -1,6 +1,6 @@
 using Avalonia.Controls;
 
-namespace SteamAccountUtility.Views.AuxiliaryViews;
+namespace SteamAccountUtility.Views;
 
 public partial class AuxiliaryFriendView : UserControl
 {

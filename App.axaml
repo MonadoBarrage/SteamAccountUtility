@@ -1,23 +1,25 @@
-<Application xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             x:Class="SteamAccountUtility.App"
-             xmlns:local="using:SteamAccountUtility"
-             RequestedThemeVariant="Light">
-             <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
+<Application
+  xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  x:Class="SteamAccountUtility.App"
+  xmlns:local="using:SteamAccountUtility"
+  RequestedThemeVariant="Light"
+>
+  <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
 
-    <Application.DataTemplates>
-        <local:ViewLocator/>
-    </Application.DataTemplates>
-             
-     <Application.Resources>
-         <ResourceDictionary>
-             <ResourceDictionary.MergedDictionaries>
-                 <ResourceInclude Source="avares://SteamAccountUtility/Icons.axaml" />     
-             </ResourceDictionary.MergedDictionaries>
-         </ResourceDictionary>
-     </Application.Resources>
-  
-    <Application.Styles>
-        <FluentTheme />
-    </Application.Styles>
+  <Application.DataTemplates>
+    <local:ViewLocator />
+  </Application.DataTemplates>
+
+  <!-- <Application.Resources> -->
+  <!--   <ResourceDictionary> -->
+  <!--     <ResourceDictionary.MergedDictionaries> -->
+  <!--       <ResourceInclude Source="avares://SteamAccountUtility/Icons.axaml" /> -->
+  <!--     </ResourceDictionary.MergedDictionaries> -->
+  <!--   </ResourceDictionary> -->
+  <!-- </Application.Resources> -->
+
+  <Application.Styles>
+    <SimpleTheme />
+  </Application.Styles>
 </Application>
