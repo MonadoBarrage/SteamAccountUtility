@@ -1,9 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using SteamAccountUtility.Messages;
 using SteamAccountUtility.Models;
+using SteamAccountUtility.Services;
 
 namespace SteamAccountUtility.ViewModels;
 
@@ -18,9 +20,10 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private bool _isBarVisible;
 
-    [ObservableProperty]
-    private Dictionary<string, ViewModelBase> _pageDictionary;
-
+    private SteamLogin _steamLogin;
+    
+    private bool _isLoggedIn;
+    
     public MainWindowViewModel()
     {
         _isBarVisible = false;
@@ -29,17 +32,17 @@ public partial class MainWindowViewModel : ViewModelBase
         if (string.IsNullOrEmpty(fullServerAddress))
         {
             CurrentPage = new ErrorWindowViewModel();
+            throw new Exception();
         }
-        else
-        {
-            CurrentPage = new LoginWithDefaultViewModel(fullServerAddress);
-        }
+
+        CurrentPage = new LoadingViewModel();
+        _steamLogin = new SteamLogin(fullServerAddress);
 
         WeakReferenceMessenger.Default.Register<MainWindowViewModel, CurrentlyLoggingInMessage>(
             this,
             (mainWindow, receivedMessage) =>
             {
-                mainWindow.CurrentPage = new LoadingViewModel();
+                mainWindow.CurrentPage = new LoadingViewModel(receivedMessage.Message);
             }
         );
 
@@ -47,25 +50,47 @@ public partial class MainWindowViewModel : ViewModelBase
             this,
             (mainWindow, receivedMessage) =>
             {
+                Console.WriteLine(
+                    "Successfully received fetched Steam Data. Attempting to move to Home Window . . ."
+                );
+
                 _allSteamData = receivedMessage.steamData;
+
                 if (_allSteamData == null)
                 {
                     mainWindow.CurrentPage = new ErrorWindowViewModel();
                     return;
                 }
+                _isLoggedIn = true;
                 mainWindow.AllSteamData = _allSteamData;
                 mainWindow.IsBarVisible = true;
                 mainWindow.CurrentPage = new HomeWindowViewModel(mainWindow.AllSteamData);
             }
         );
 
-        WeakReferenceMessenger.Default.Register<MainWindowViewModel, LoadingFailedMessage>(
+        WeakReferenceMessenger.Default.Register<MainWindowViewModel, GoToLoginScreen>(
             this,
-            (mainWindow, _) =>
+            (mainWindow, receivedMessage) =>
             {
-                mainWindow.CurrentPage = new LoginWithDefaultViewModel(fullServerAddress);
+                if (_isLoggedIn)
+                    return;
+                
+                mainWindow.CurrentPage = new LoginWindowViewModel(
+                    fullServerAddress,
+                    receivedMessage.ErrorMessage
+                );
             }
         );
+
+        WeakReferenceMessenger.Default.Register<MainWindowViewModel, GoToSteamGuardCode>(
+            this,
+            (mainWindow, receivedMessage) =>
+            {
+                mainWindow.CurrentPage = new LoginSubmitCodeViewModel();
+            }
+        );
+
+        _ = _steamLogin.LoginToSteam(SteamLoginType.RefreshToken);
     }
 
     [RelayCommand]

@@ -1,6 +1,7 @@
 <Application
   xmlns="https://github.com/avaloniaui"
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:themes="clr-namespace:Material.Styles.Themes;assembly=Material.Styles"
   x:Class="SteamAccountUtility.App"
   xmlns:local="using:SteamAccountUtility"
   RequestedThemeVariant="Light"
@@ -20,6 +21,7 @@
   <!-- </Application.Resources> -->
 
   <Application.Styles>
+    <StyleInclude Source="avares://AvaloniaProgressRing/Styles/ProgressRing.xaml" />
     <SimpleTheme />
   </Application.Styles>
 </Application>

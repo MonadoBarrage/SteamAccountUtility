@@ -22,6 +22,7 @@ public class SteamHttpRequests(string address)
         try
         {
             var requestLink = _serverUrl + "/owned-games?id=" + userId.ConvertToUInt64();
+            Console.WriteLine(requestLink);
             using var response = await _httpClient.GetAsync(requestLink);
             response.EnsureSuccessStatusCode();
 
@@ -52,6 +53,7 @@ public class SteamHttpRequests(string address)
         catch (Exception e)
         {
             await Console.Error.WriteLineAsync(e.Message);
+            Console.WriteLine("Sucks to suyck i gus");
             return null;
         }
     }

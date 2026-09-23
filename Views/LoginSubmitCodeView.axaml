@@ -1,0 +1,103 @@
+<UserControl
+  xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:vm="using:SteamAccountUtility.ViewModels"
+  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  mc:Ignorable="d"
+  d:DesignWidth="800"
+  d:DesignHeight="450"
+  x:Class="SteamAccountUtility.Views.LoginSubmitCodeView"
+  x:DataType="vm:LoginSubmitCodeViewModel"
+>
+
+  <UserControl.Styles>
+    <Style Selector="TextBlock.Label">
+      <Setter Property="FontSize" Value="16" />
+      <Setter Property="Margin" Value="5" />
+      <Setter Property="Foreground" Value="AliceBlue" />
+      <Setter Property="HorizontalAlignment" Value="Center" />
+    </Style>
+
+    <Style Selector="TextBox.Login">
+      <Setter Property="Padding" Value="10" />
+      <Setter Property="Width" Value="300" />
+      <Setter Property="Height" Value="50" />
+      <Setter Property="MaxLines" Value="1" />
+      <Setter Property="HorizontalAlignment" Value="Stretch" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+      <Setter Property="Margin" Value="5" />
+      <Setter Property="AcceptsReturn" Value="False" />
+      <Setter Property="IsEnabled" Value="{Binding }" />
+      <Setter Property="Background" Value="AliceBlue" />
+      <Setter Property="TextAlignment" Value="Center" />
+      <Setter Property="FontSize" Value="20" />
+    </Style>
+
+    <Style Selector="Button.LoginButton">
+      <Setter Property="CornerRadius" Value="3" />
+      <Setter Property="HorizontalAlignment" Value="Stretch" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+      <Setter Property="Height" Value="45" />
+      <Setter Property="Width" Value="150" />
+      <Setter Property="FontSize" Value="20" />
+      <Setter Property="Margin" Value="0 20 0 10" />
+      <Setter Property="Background" Value="#45bcef" />
+    </Style>
+    <Style Selector="Button.LoginButton:pointerover">
+      <Setter Property="Background" Value="#49c6fc" />
+    </Style>
+    <Style Selector="Button.LoginButton:pressed">
+      <Setter Property="Background" Value="#3c9bc4" />
+    </Style>
+  </UserControl.Styles>
+
+  <StackPanel>
+    <TextBlock
+      Foreground="WhiteSmoke"
+      HorizontalAlignment="Center"
+      VerticalAlignment="Center"
+      FontSize="26"
+      FontWeight="Bold"
+      Margin="0 10 0 10 "
+      Text="Login"
+    />
+    <Border
+      Background="#171d25"
+      BorderBrush="Black"
+      BorderThickness="2"
+      CornerRadius="3"
+      BoxShadow="5 5 10 0 DarkGray"
+      HorizontalAlignment="Center"
+      VerticalAlignment="Center"
+    >
+      <WrapPanel HorizontalAlignment="Center">
+        <WrapPanel
+          Margin="10"
+          VerticalAlignment="Stretch"
+          HorizontalAlignment="Center"
+          ItemsAlignment="Center"
+          ItemSpacing="20"
+        >
+          <StackPanel>
+            <TextBlock Classes="Label" Text="Submit Steam Guard Code" />
+            <TextBox
+              Classes="Login"
+              MaxLength="5"
+              PlaceholderText="Enter code"
+              Text="{Binding SteamCode}"
+            />
+
+            <Button
+              Classes="LoginButton"
+              Content="Submit"
+              IsEnabled="{Binding IsButtonEnabled}"
+              Command="{Binding EnterSteamCodeCommand}"
+            />
+          </StackPanel>
+        </WrapPanel>
+      </WrapPanel>
+    </Border>
+  </StackPanel>
+</UserControl>

@@ -11,13 +11,13 @@ using SteamAccountUtility.Services;
 
 namespace SteamAccountUtility.ViewModels;
 
-public partial class LoginWithDefaultViewModel : ViewModelBase
+public partial class LoginWindowViewModel : ViewModelBase
 {
     [ObservableProperty]
-    private string? _username = "generalwardragon";
+    private string? _username;
 
     [ObservableProperty]
-    private string? _password = "=g_vP>q-myx2";
+    private string? _password;
 
     [ObservableProperty]
     private string? _errorMessage;
@@ -27,16 +27,24 @@ public partial class LoginWithDefaultViewModel : ViewModelBase
 
     [ObservableProperty]
     private Bitmap? _qrCodeImage;
+    
+    [ObservableProperty]
+    private bool _isQrCodeButtonEnabled = false;
 
     private AllSteamData? _allSteamData;
 
-    private readonly SteamLogin _steamLogin;
+    private readonly SteamLogin _steamLoginDefault;
+    private readonly SteamLogin _steamLoginQrCode;
 
-    public LoginWithDefaultViewModel(string serverAddress)
+    public LoginWindowViewModel(
+        string serverAddress,
+        string? error = null
+    )
     {
-        _steamLogin = new SteamLogin(serverAddress);
-
-        WeakReferenceMessenger.Default.Register<LoginWithDefaultViewModel, UpdateQrCode>(
+        _steamLoginDefault = new SteamLogin(serverAddress);
+        _steamLoginQrCode = new SteamLogin(serverAddress);
+        _errorMessage = error;
+        WeakReferenceMessenger.Default.Register<LoginWindowViewModel, UpdateQrCode>(
             this,
             (mainWindow, receivedMessage) =>
             {
@@ -45,26 +53,32 @@ public partial class LoginWithDefaultViewModel : ViewModelBase
                     Console.WriteLine("Received null QR code");
             }
         );
-
-        _ = LoginToSteamAsync();
+        
+        WeakReferenceMessenger.Default.Register<LoginWindowViewModel, RefreshQrCodeLogin>(
+            this,
+            (mainWindow, _) =>
+            {
+                _qrCodeImage = null;
+                mainWindow.IsQrCodeButtonEnabled = true;
+            }
+        );
+        _ = LoginToSteamUsingQrCodeAsync();
     }
 
     [RelayCommand]
-    private async Task LoginToSteamAsync()
+    private async Task LoginToSteamUsingDefaultAsync()
     {
         IsLoginButtonEnabled = false;
-        ErrorMessage = "Logging in...";
-
-        _steamLogin.GetCredentials(Username, Password);
-        _ = _steamLogin.LoginToSteam(true);
+        _steamLoginQrCode.TerminateClient();
+        _steamLoginDefault.GetCredentials(Username, Password);
+        await _steamLoginDefault.LoginToSteam(SteamLoginType.Default);
     }
 
     [RelayCommand]
-    private void DisconnectFromSteam()
+    private async Task LoginToSteamUsingQrCodeAsync()
     {
-        IsLoginButtonEnabled = true;
-        _steamLogin.DisconnectClient();
-        ErrorMessage = "Disconnected";
+        
+        _ = _steamLoginQrCode.LoginToSteam(SteamLoginType.QrCode);
     }
 
     private static bool ParseRefreshToken(string token)

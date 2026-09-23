@@ -1,7 +1,8 @@
 namespace SteamAccountUtility.Models;
 
-enum SteamLoginType
+public enum SteamLoginType
 {
+    RefreshToken,
     QrCode,
     Default,
 }

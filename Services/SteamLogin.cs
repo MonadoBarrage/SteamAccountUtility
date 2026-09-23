@@ -8,8 +8,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.Messaging;
+using KeySharp;
 using QRCoder;
-using SkiaSharp;
 using SteamAccountUtility.Messages;
 using SteamAccountUtility.Models;
 using SteamAccountUtility.ViewModels;
@@ -18,14 +18,13 @@ using SteamKit2.Authentication;
 
 namespace SteamAccountUtility.Services;
 
-internal sealed class SteamLogin: IDisposable
+public class SteamLogin : IDisposable
 {
-    
     private const bool ShouldRememberPassword = true;
     private string? _username;
     private string? _password;
-    private string? _guardData;
-    private string? _refreshToken;
+    private string? _refreshToken;    
+    // private string? _guardData;
 
     private readonly ConcurrentDictionary<SteamID, FriendData> _friendsDictionary = new();
 
@@ -34,12 +33,16 @@ internal sealed class SteamLogin: IDisposable
     private readonly CallbackManager _manager;
     private readonly SteamClient _steamClient;
     private readonly SteamHttpRequests _steamHttpRequests;
-    
+
     private SteamFriends? _steamFriends;
     private SteamUser? _steamUser;
-    
+
     private int _remainingFetches;
-    private readonly TaskCompletionSource<bool> _loginTaskCompletionSource = new();
+    private TaskCompletionSource<bool> _loginTaskCompletionSource;
+
+    private int _errorChecker;
+    private TaskCompletionSource<bool> _errorCheckTaskCompletionSource;
+    
     
     private UserData _userData = new();
     private readonly ObservableCollection<FriendData> _friendsCollection = [];
@@ -47,8 +50,10 @@ internal sealed class SteamLogin: IDisposable
     private BadgesAndLevelsResponse _badgesAndLevels = new();
     private List<int> _recentlyPlayedGamesResponse = [];
 
-    private bool _useQrCodeVerification;
-    
+    private CancellationTokenSource _cancellationSource;
+    private SteamLoginType _currentLoginType = SteamLoginType.Default;
+    private CancellationToken _token;
+
     public void GetCredentials(string? username, string? password)
     {
         _username = username;
@@ -57,6 +62,11 @@ internal sealed class SteamLogin: IDisposable
 
     public SteamLogin(string serverAddress)
     {
+        _cancellationSource = new CancellationTokenSource();
+        _token = _cancellationSource.Token;
+        _loginTaskCompletionSource = new TaskCompletionSource<bool>();
+        _errorCheckTaskCompletionSource = new TaskCompletionSource<bool>();
+        
         _steamClient = new SteamClient();
 
         _manager = new CallbackManager(_steamClient);
@@ -73,40 +83,60 @@ internal sealed class SteamLogin: IDisposable
         _manager.Subscribe<SteamUser.AccountInfoCallback>(OnAccountInfo);
         _manager.Subscribe<SteamFriends.FriendsListCallback>(GetFriendsList);
         _manager.Subscribe<SteamFriends.PersonaStateCallback>(OnPersonaState);
-
-        _isRunning = true;
     }
 
-    public async Task LoginToSteam(bool isQrCodeVerification)
+    public async Task LoginToSteam(SteamLoginType lt)
     {
-        _useQrCodeVerification = isQrCodeVerification;
+        try
+        {
+            _cancellationSource = new CancellationTokenSource();
+            _token = _cancellationSource.Token;
+            _loginTaskCompletionSource = new TaskCompletionSource<bool>();
+            _errorCheckTaskCompletionSource = new TaskCompletionSource<bool>();
+            
+            _steamClient.Disconnect();
+            _currentLoginType = lt;
+            _isRunning = true;
 
-        _remainingFetches = 5;
-        _ = BeginLoginToSteam();
-        var didClientFetchData = await _loginTaskCompletionSource.Task;
+            _remainingFetches = 5;
+            _errorChecker = 1;
+            Console.WriteLine("Connecting to Steam...");
 
-        if (!didClientFetchData)
-            return;
-
-        var steamData = CreateAllSteamData();
-        WeakReferenceMessenger.Default.Send(new LoadingSuccessfulMessage(steamData));
+            _steamClient.Connect();
+            while (_isRunning && !_token.IsCancellationRequested)
+                await _manager.RunWaitCallbackAsync(_token);
+        }
+        catch (Exception e)
+        {
+            TerminateClient();
+            Console.WriteLine(e);
+        }
     }
 
-    private async Task BeginLoginToSteam()
+    
+    
+    public void TerminateClient()
     {
+        if (Interlocked.Decrement(ref _errorChecker) == 0)
+        {
+            _cancellationSource.Cancel();
+            _steamClient.Disconnect();
+            _isRunning = false;
+            _loginTaskCompletionSource.TrySetResult(false);
+            switch (_currentLoginType)
+            {
+                case SteamLoginType.Default:
+                    WeakReferenceMessenger.Default.Send(new GoToLoginScreen("Error logging in"));
+                    break;
+                case SteamLoginType.RefreshToken:
+                    WeakReferenceMessenger.Default.Send(new GoToLoginScreen(""));
+                    break;
+                case SteamLoginType.QrCode:
+                    WeakReferenceMessenger.Default.Send(new RefreshQrCodeLogin());
+                    break;
+            }
+        }
 
-        Console.WriteLine("Connecting to Steam...");
-        _isRunning = true;
-        _steamClient.Connect();
-        while (_isRunning)
-            await _manager.RunWaitCallbackAsync();
-    }
-
-    public void DisconnectClient()
-    {
-        _steamClient?.Disconnect();
-        _isRunning = false;
-        _loginTaskCompletionSource.TrySetResult(false);
         Console.WriteLine("Disconnecting from Steam...");
     }
 
@@ -120,7 +150,9 @@ internal sealed class SteamLogin: IDisposable
         if (Interlocked.Decrement(ref _remainingFetches) == 0)
         {
             _loginTaskCompletionSource.TrySetResult(true);
+            _isRunning = false;
         }
+        Console.Write("Fetches remaining: {0}", _remainingFetches);
     }
 
     private async void OnConnected(SteamClient.ConnectedCallback callback)
@@ -128,91 +160,153 @@ internal sealed class SteamLogin: IDisposable
         try
         {
             Console.WriteLine("Connected to Steam! Logging in '{0}'...", _username);
-
-            _ = _useQrCodeVerification ? SignInWithQrCode() : SignInWithDefault();
+            switch (_currentLoginType)
+            {
+                case SteamLoginType.Default:
+                    _ = SignInWithDefault();
+                    break;
+                case SteamLoginType.QrCode:
+                    _ = SignInWithQrCode();
+                    break;
+                case SteamLoginType.RefreshToken:
+                    SignInWithRefreshToken();
+                    break;
+                default:
+                    throw new Exception();
+            }
         }
         catch (Exception e)
         {
-            DisconnectClient();
+            TerminateClient();
             Console.WriteLine(e);
         }
     }
 
-    private async Task SignInWithQrCode()
+    private void SignInWithRefreshToken()
     {
-        if (_steamUser == null)
-            return;
-
-        // Start an authentication session by requesting a link
-        var authSession = await _steamClient.Authentication.BeginAuthSessionViaQRAsync(
-            new AuthSessionDetails()
-        );
-
-        // Steam will periodically refresh the challenge url, this callback allows you to draw a new qr code
-        authSession.ChallengeURLChanged = () =>
+        
+        
+        try
         {
-            Console.WriteLine();
-            Console.WriteLine("Steam has refreshed the challenge url");
-
-            DrawQrCode(authSession);
-        };
-
-        // Draw current qr right away
-        DrawQrCode(authSession);
-
-        var pollResponse = await authSession.PollingWaitForResultAsync();
-
-        WeakReferenceMessenger.Default.Send(new CurrentlyLoggingInMessage());
-
-        Console.WriteLine($"Logging in as '{pollResponse.AccountName}'...");
-
-        // Logon to Steam with the access token we have received
-        _steamUser.LogOn(
-            new SteamUser.LogOnDetails
-            {
-                Username = pollResponse.AccountName,
-                AccessToken = pollResponse.RefreshToken,
-            }
-        );
-    }
-
-    private async Task SignInWithDefault()
-    {
-        if (_steamUser == null)
+            _username = Keyring.GetPassword("SteamAccountUtility", "Steam", "username");
+            _refreshToken = Keyring.GetPassword("SteamAccountUtility", "Steam", "refreshToken");
+        }
+        catch (KeyringException ex)
+        {
+            Console.Error.WriteLine(ex);
+            TerminateClient();
             return;
+        }
 
-        var authSession = await _steamClient.Authentication.BeginAuthSessionViaCredentialsAsync(
-            new AuthSessionDetails
+        _steamUser?.LogOn(
+            new SteamUser.LogOnDetails
             {
                 Username = _username,
-                Password = _password,
-                IsPersistentSession = ShouldRememberPassword,
-
-                GuardData = _guardData,
-
-                Authenticator = new UserConsoleAuthenticator(),
-            }
-        );
-
-        var pollResponse = await authSession.PollingWaitForResultAsync();
-        Console.WriteLine("Im in this johnson");
-        if (pollResponse.NewGuardData != null)
-            _guardData = pollResponse.NewGuardData;
-
-        if (!string.IsNullOrEmpty(pollResponse.RefreshToken))
-            _refreshToken = pollResponse.RefreshToken;
-
-        _steamUser.LogOn(
-            new SteamUser.LogOnDetails
-            {
-                Username = pollResponse.AccountName,
                 AccessToken = _refreshToken,
                 ShouldRememberPassword = ShouldRememberPassword,
             }
         );
     }
 
-    void DrawQrCode(QrAuthSession authSession)
+    private async Task SignInWithQrCode()
+    {
+        try
+        {
+            if (_steamUser == null)
+            {
+                TerminateClient();
+                return;
+            }
+
+            // Start an authentication session by requesting a link
+            var authSession = await _steamClient.Authentication.BeginAuthSessionViaQRAsync(
+                new AuthSessionDetails()
+            );
+
+            // Steam will periodically refresh the challenge url, this callback allows you to draw a new qr code
+            authSession.ChallengeURLChanged = () =>
+            {
+                Console.WriteLine();
+                Console.WriteLine("Steam has refreshed the challenge url");
+
+                DrawQrCode(authSession);
+            };
+
+            // Draw current qr right away
+            DrawQrCode(authSession);
+
+            var pollResponse = await authSession.PollingWaitForResultAsync(_token);
+            _username = pollResponse.AccountName;
+            _refreshToken = pollResponse.RefreshToken;
+            WeakReferenceMessenger.Default.Send(new CurrentlyLoggingInMessage());
+
+            Console.WriteLine($"Logging in as '{pollResponse.AccountName}'...");
+
+            
+            // Logon to Steam with the access token we have received
+            _steamUser.LogOn(
+                new SteamUser.LogOnDetails
+                {
+                    Username = _username,
+                    AccessToken = _refreshToken,
+                    ShouldRememberPassword = ShouldRememberPassword,
+                }
+            );
+        }
+        catch (Exception e)
+        {
+            TerminateClient();
+            Console.WriteLine(e);
+        }
+    }
+
+    private async Task SignInWithDefault()
+    {
+        try
+        {
+            if (_steamUser == null)
+            {
+                TerminateClient();
+                return;
+            }
+
+            var authSession = await _steamClient.Authentication.BeginAuthSessionViaCredentialsAsync(
+                new AuthSessionDetails
+                {
+                    Username = _username,
+                    Password = _password,
+                    IsPersistentSession = ShouldRememberPassword,
+
+                    // GuardData = _guardData,
+
+                    Authenticator = new SteamKit2Authenticator(),
+                }
+            );
+
+            var pollResponse = await authSession.PollingWaitForResultAsync(_token);
+            // if (pollResponse.NewGuardData != null)
+            //     _guardData = pollResponse.NewGuardData;
+
+            _username = pollResponse.AccountName;
+            _refreshToken = pollResponse.RefreshToken;
+
+            _steamUser.LogOn(
+                new SteamUser.LogOnDetails
+                {
+                    Username = _username,
+                    AccessToken = _refreshToken,
+                    ShouldRememberPassword = ShouldRememberPassword,
+                }
+            );
+        }
+        catch (Exception e)
+        {
+            TerminateClient();
+            Console.WriteLine(e);
+        }
+    }
+
+    private void DrawQrCode(QrAuthSession authSession)
     {
         Console.WriteLine($"Challenge URL: {authSession.ChallengeURL}");
         Console.WriteLine();
@@ -237,7 +331,7 @@ internal sealed class SteamLogin: IDisposable
         Console.WriteLine("Disconnected from Steam");
     }
 
-    private void OnLoggedOn(SteamUser.LoggedOnCallback callback)
+    private async void OnLoggedOn(SteamUser.LoggedOnCallback callback)
     {
         try
         {
@@ -248,22 +342,49 @@ internal sealed class SteamLogin: IDisposable
                 || _steamUser.SteamID == null
             )
             {
-                WeakReferenceMessenger.Default.Send(new LoadingFailedMessage());
-
-                _isRunning = false;
+                TerminateClient();
                 return;
             }
 
+            
+            Keyring.SetPassword(
+                "SteamAccountUtility",
+                "Steam",
+                "username",
+                _username
+            );
+            Keyring.SetPassword(
+                "SteamAccountUtility",
+                "Steam",
+                "refreshToken",
+                _refreshToken
+            );
+            
             Console.WriteLine("Successfully logged on!");
+
+            _loginTaskCompletionSource = new TaskCompletionSource<bool>();
 
             _ = _steamFriends.RequestProfileInfo(_steamUser.SteamID);
             _ = GetGameList();
             _ = GetBadgesAndLevels();
             _ = GetRecentlyPlayedGames();
+
+            var didClientFetchData = await _loginTaskCompletionSource.Task;
+            if (!didClientFetchData)
+            {
+                TerminateClient();
+                return;
+            }
+
+            Console.WriteLine(
+                "Successfully fetched all Steam Data. Attempting to send data to MainWindow . . ."
+            );
+            var steamData = CreateAllSteamData();
+            WeakReferenceMessenger.Default.Send(new LoadingSuccessfulMessage(steamData));
         }
         catch (Exception e)
         {
-            DisconnectClient();
+            TerminateClient();
             Console.WriteLine(e);
         }
     }
@@ -283,7 +404,10 @@ internal sealed class SteamLogin: IDisposable
         try
         {
             if (_steamUser == null || _steamUser.SteamID == null)
+            {
+                TerminateClient();
                 return;
+            }
             if (callback.FriendID == _steamUser.SteamID)
             {
                 _ = GetUserProfile(callback);
@@ -309,124 +433,159 @@ internal sealed class SteamLogin: IDisposable
         }
         catch (Exception e)
         {
-            DisconnectClient();
+            TerminateClient();
             Console.WriteLine(e);
         }
     }
 
     private async Task GetUserProfile(SteamFriends.PersonaStateCallback callback)
     {
-        var newAvatarPhoto = await _steamHttpRequests.FetchUserAvatar(callback.AvatarHash);
-
-        var ud = new UserData()
+        try
         {
-            SteamID = callback.FriendID,
-            ProfileName = callback.Name,
-            AvatarHash = callback.AvatarHash,
-            AvatarIcon = newAvatarPhoto,
-        };
+            var newAvatarPhoto = await _steamHttpRequests.FetchUserAvatar(callback.AvatarHash);
 
-        Console.WriteLine("Completed user profile");
-        _userData = ud;
-        CompleteCallback();
+            var ud = new UserData()
+            {
+                SteamID = callback.FriendID,
+                ProfileName = callback.Name,
+                AvatarHash = callback.AvatarHash,
+                AvatarIcon = newAvatarPhoto,
+            };
+
+            Console.WriteLine("Completed user profile");
+            _userData = ud;
+            CompleteCallback();
+        }catch (Exception e)
+        {
+            TerminateClient();
+            Console.WriteLine(e);
+        }
     }
 
     private async void GetFriendsList(SteamFriends.FriendsListCallback callback)
     {
-        if (_steamFriends == null || _steamUser == null)
+        try
         {
-            _loginTaskCompletionSource.TrySetResult(false);
-            return;
-        }
+            if (_steamFriends == null || _steamUser == null)
+            {
+                TerminateClient();
+                return;
+            }
 
-        for (var x = 0; x < _steamFriends.GetFriendCount(); x++)
+            for (var x = 0; x < _steamFriends.GetFriendCount(); x++)
+            {
+                var steamIdFriend = _steamFriends.GetFriendByIndex(x);
+                if (steamIdFriend == _steamUser.SteamID)
+                    continue;
+
+                await _steamFriends.RequestProfileInfo(steamIdFriend);
+            }
+
+            Console.WriteLine("Completed friends list");
+            CompleteCallback();
+        }catch (Exception e)
         {
-            var steamIdFriend = _steamFriends.GetFriendByIndex(x);
-            if (steamIdFriend == _steamUser.SteamID)
-                continue;
-
-            await _steamFriends.RequestProfileInfo(steamIdFriend);
+            TerminateClient();
+            Console.WriteLine(e);
         }
-
-        Console.WriteLine("Completed friends list");
-        CompleteCallback();
     }
 
     private async Task GetGameList()
     {
-        if (_steamUser == null || _steamUser.SteamID == null)
+        try
         {
-            _loginTaskCompletionSource.TrySetResult(false);
-            return;
-        }
+            if (_steamUser == null || _steamUser.SteamID == null)
+            {   TerminateClient();
+                return;
+            }
 
-        var sid = new SteamID(_steamUser.SteamID);
+            var sid = new SteamID(_steamUser.SteamID);
 
-        var fetchedGames = await _steamHttpRequests.FetchUserGameLibrary(sid);
+            var fetchedGames = await _steamHttpRequests.FetchUserGameLibrary(sid);
 
-        if (fetchedGames == null)
+            if (fetchedGames == null)
+            {
+                TerminateClient();
+                return;
+            }
+
+            _gamesList = fetchedGames;
+            Console.WriteLine("Completed game list");
+
+            CompleteCallback();
+        }catch (Exception e)
         {
-            _loginTaskCompletionSource.TrySetResult(false);
-            return;
+            TerminateClient();
+            Console.WriteLine(e);
         }
-
-        _gamesList = fetchedGames;
-        Console.WriteLine("Completed game list");
-
-        CompleteCallback();
     }
 
     private async Task GetBadgesAndLevels()
     {
-        if (_steamUser == null || _steamUser.SteamID == null)
+        try
         {
-            _loginTaskCompletionSource.TrySetResult(false);
-            return;
-        }
-        var sid = new SteamID(_steamUser.SteamID);
+            if (_steamUser == null || _steamUser.SteamID == null)
+            {
+                TerminateClient();
+                return;
+            }
 
-        var fetchedBadgesAndLevels = await _steamHttpRequests.FetchUserBadgesAndLevels(sid);
+            var sid = new SteamID(_steamUser.SteamID);
 
-        if (fetchedBadgesAndLevels == null)
+            var fetchedBadgesAndLevels = await _steamHttpRequests.FetchUserBadgesAndLevels(sid);
+
+            if (fetchedBadgesAndLevels == null)
+            {
+                TerminateClient();
+                return;
+            }
+
+            _badgesAndLevels = fetchedBadgesAndLevels;
+
+            Console.WriteLine("Completed badges and levels");
+            CompleteCallback();
+        } catch (Exception e)
         {
-            _loginTaskCompletionSource.TrySetResult(false);
-            return;
+            TerminateClient();
+            Console.WriteLine(e);
         }
-
-        _badgesAndLevels = fetchedBadgesAndLevels;
-
-        Console.WriteLine("Completed badges and levels");
-        CompleteCallback();
     }
 
     private async Task GetRecentlyPlayedGames()
     {
-        if (_steamUser == null || _steamUser.SteamID == null)
+        try
         {
-            _loginTaskCompletionSource.TrySetResult(false);
-            return;
-        }
+            if (_steamUser == null || _steamUser.SteamID == null)
+            {
+                TerminateClient();
+                return;
+            }
 
-        var sid = new SteamID(_steamUser.SteamID);
+            var sid = new SteamID(_steamUser.SteamID);
 
-        var recentlyPlayed = await _steamHttpRequests.FetchRecentlyPlayedGames(sid);
+            var recentlyPlayed = await _steamHttpRequests.FetchRecentlyPlayedGames(sid);
 
-        if (recentlyPlayed == null)
+            if (recentlyPlayed == null)
+            {
+                TerminateClient();
+                return;
+            }
+
+            List<int> gameIDs = [];
+            if (recentlyPlayed.Response?.Games != null)
+            {
+                gameIDs = [.. recentlyPlayed.Response.Games.Select(game => game.AppId)];
+            }
+
+            _recentlyPlayedGamesResponse = gameIDs;
+
+            Console.WriteLine("Completed recently played games");
+            CompleteCallback();
+        }catch (Exception e)
         {
-            _loginTaskCompletionSource.TrySetResult(false);
-            return;
+            TerminateClient();
+            Console.WriteLine(e);
         }
-
-        List<int> gameIDs = [];
-        if (recentlyPlayed.Response?.Games != null)
-        {
-            gameIDs = [.. recentlyPlayed.Response.Games.Select(game => game.AppId)];
-        }
-
-        _recentlyPlayedGamesResponse = gameIDs;
-
-        Console.WriteLine("Completed recently played games");
-        CompleteCallback();
     }
 
     private AllSteamData CreateAllSteamData()

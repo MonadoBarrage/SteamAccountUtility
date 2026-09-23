@@ -1,3 +1,3 @@
 namespace SteamAccountUtility.Messages;
 
-public class LoadingFailedMessage;
+public class GoToSteamGuardCode { }
