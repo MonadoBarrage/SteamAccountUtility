@@ -25,26 +25,25 @@
   <!--     </DrawingImage> -->
   <!-- </Window.Resources> -->
 
-
   <Window.Styles>
     <Style Selector="Border.SubBox">
       <Setter Property="BorderBrush" Value="Black" />
       <Setter Property="BorderThickness" Value="3" />
       <Setter Property="CornerRadius" Value="10" />
-      <Setter Property="Background" Value="#171d25"/>
+      <Setter Property="Background" Value="#171d25" />
     </Style>
     <Style Selector="TextBlock.SubBoxTitle">
       <Setter Property="FontFamily" Value="fonts:AppFonts#Motiva Sans ExtraBold" />
       <Setter Property="Margin" Value="5" />
       <Setter Property="FontSize" Value="25" />
-      <Setter Property="Foreground" Value="AliceBlue"/>
+      <Setter Property="Foreground" Value="AliceBlue" />
     </Style>
     <Style Selector="TextBlock.SubBoxItem">
       <Setter Property="FontFamily" Value="fonts:AppFonts#Motiva Sans Medium" />
       <Setter Property="VerticalAlignment" Value="Center" />
       <Setter Property="Margin" Value="5" />
       <Setter Property="FontSize" Value="18" />
-      <Setter Property="Foreground" Value="AliceBlue"/>
+      <Setter Property="Foreground" Value="AliceBlue" />
     </Style>
     <Style Selector="Grid.SubGameList">
       <Setter Property="VerticalAlignment" Value="Center" />

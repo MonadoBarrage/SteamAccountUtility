@@ -9,10 +9,11 @@ namespace SteamAccountUtility.ViewModels;
 
 public partial class LoginSubmitCodeViewModel : ViewModelBase
 {
-    [ObservableProperty] private string? _steamCode;
-    
-    [ObservableProperty] private bool _isButtonEnabled = true;
+    [ObservableProperty]
+    private string? _steamCode;
 
+    [ObservableProperty]
+    private bool _isButtonEnabled = true;
 
     [RelayCommand]
     private void EnterSteamCode()
@@ -20,10 +21,10 @@ public partial class LoginSubmitCodeViewModel : ViewModelBase
         if (string.IsNullOrEmpty(SteamCode))
             return;
         IsButtonEnabled = false;
-        
-        WeakReferenceMessenger.Default.Send(new SendLoginCodeMessage(SteamCode));
-        WeakReferenceMessenger.Default.Send(new CurrentlyLoggingInMessage("Logging in with Guard code. . . "));
-    }
 
-    
+        WeakReferenceMessenger.Default.Send(new SendLoginCodeMessage(SteamCode));
+        WeakReferenceMessenger.Default.Send(
+            new CurrentlyLoggingInMessage("Logging in with Guard code. . . ")
+        );
+    }
 }

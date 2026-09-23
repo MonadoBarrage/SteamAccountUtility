@@ -23,7 +23,8 @@ public class SteamLogin : IDisposable
     private const bool ShouldRememberPassword = true;
     private string? _username;
     private string? _password;
-    private string? _refreshToken;    
+    private string? _refreshToken;
+
     // private string? _guardData;
 
     private readonly ConcurrentDictionary<SteamID, FriendData> _friendsDictionary = new();
@@ -42,8 +43,7 @@ public class SteamLogin : IDisposable
 
     private int _errorChecker;
     private TaskCompletionSource<bool> _errorCheckTaskCompletionSource;
-    
-    
+
     private UserData _userData = new();
     private readonly ObservableCollection<FriendData> _friendsCollection = [];
     private Dictionary<int, RenderedSteamGame> _gamesList = [];
@@ -66,7 +66,7 @@ public class SteamLogin : IDisposable
         _token = _cancellationSource.Token;
         _loginTaskCompletionSource = new TaskCompletionSource<bool>();
         _errorCheckTaskCompletionSource = new TaskCompletionSource<bool>();
-        
+
         _steamClient = new SteamClient();
 
         _manager = new CallbackManager(_steamClient);
@@ -93,7 +93,7 @@ public class SteamLogin : IDisposable
             _token = _cancellationSource.Token;
             _loginTaskCompletionSource = new TaskCompletionSource<bool>();
             _errorCheckTaskCompletionSource = new TaskCompletionSource<bool>();
-            
+
             _steamClient.Disconnect();
             _currentLoginType = lt;
             _isRunning = true;
@@ -113,8 +113,6 @@ public class SteamLogin : IDisposable
         }
     }
 
-    
-    
     public void TerminateClient()
     {
         if (Interlocked.Decrement(ref _errorChecker) == 0)
@@ -184,8 +182,6 @@ public class SteamLogin : IDisposable
 
     private void SignInWithRefreshToken()
     {
-        
-        
         try
         {
             _username = Keyring.GetPassword("SteamAccountUtility", "Steam", "username");
@@ -242,7 +238,6 @@ public class SteamLogin : IDisposable
 
             Console.WriteLine($"Logging in as '{pollResponse.AccountName}'...");
 
-            
             // Logon to Steam with the access token we have received
             _steamUser.LogOn(
                 new SteamUser.LogOnDetails
@@ -346,20 +341,9 @@ public class SteamLogin : IDisposable
                 return;
             }
 
-            
-            Keyring.SetPassword(
-                "SteamAccountUtility",
-                "Steam",
-                "username",
-                _username
-            );
-            Keyring.SetPassword(
-                "SteamAccountUtility",
-                "Steam",
-                "refreshToken",
-                _refreshToken
-            );
-            
+            Keyring.SetPassword("SteamAccountUtility", "Steam", "username", _username);
+            Keyring.SetPassword("SteamAccountUtility", "Steam", "refreshToken", _refreshToken);
+
             Console.WriteLine("Successfully logged on!");
 
             _loginTaskCompletionSource = new TaskCompletionSource<bool>();
@@ -455,7 +439,8 @@ public class SteamLogin : IDisposable
             Console.WriteLine("Completed user profile");
             _userData = ud;
             CompleteCallback();
-        }catch (Exception e)
+        }
+        catch (Exception e)
         {
             TerminateClient();
             Console.WriteLine(e);
@@ -483,7 +468,8 @@ public class SteamLogin : IDisposable
 
             Console.WriteLine("Completed friends list");
             CompleteCallback();
-        }catch (Exception e)
+        }
+        catch (Exception e)
         {
             TerminateClient();
             Console.WriteLine(e);
@@ -495,7 +481,8 @@ public class SteamLogin : IDisposable
         try
         {
             if (_steamUser == null || _steamUser.SteamID == null)
-            {   TerminateClient();
+            {
+                TerminateClient();
                 return;
             }
 
@@ -513,7 +500,8 @@ public class SteamLogin : IDisposable
             Console.WriteLine("Completed game list");
 
             CompleteCallback();
-        }catch (Exception e)
+        }
+        catch (Exception e)
         {
             TerminateClient();
             Console.WriteLine(e);
@@ -544,7 +532,8 @@ public class SteamLogin : IDisposable
 
             Console.WriteLine("Completed badges and levels");
             CompleteCallback();
-        } catch (Exception e)
+        }
+        catch (Exception e)
         {
             TerminateClient();
             Console.WriteLine(e);
@@ -581,7 +570,8 @@ public class SteamLogin : IDisposable
 
             Console.WriteLine("Completed recently played games");
             CompleteCallback();
-        }catch (Exception e)
+        }
+        catch (Exception e)
         {
             TerminateClient();
             Console.WriteLine(e);

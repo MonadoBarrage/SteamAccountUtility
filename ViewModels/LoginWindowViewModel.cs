@@ -27,7 +27,7 @@ public partial class LoginWindowViewModel : ViewModelBase
 
     [ObservableProperty]
     private Bitmap? _qrCodeImage;
-    
+
     [ObservableProperty]
     private bool _isQrCodeButtonEnabled = false;
 
@@ -36,10 +36,7 @@ public partial class LoginWindowViewModel : ViewModelBase
     private readonly SteamLogin _steamLoginDefault;
     private readonly SteamLogin _steamLoginQrCode;
 
-    public LoginWindowViewModel(
-        string serverAddress,
-        string? error = null
-    )
+    public LoginWindowViewModel(string serverAddress, string? error = null)
     {
         _steamLoginDefault = new SteamLogin(serverAddress);
         _steamLoginQrCode = new SteamLogin(serverAddress);
@@ -53,7 +50,7 @@ public partial class LoginWindowViewModel : ViewModelBase
                     Console.WriteLine("Received null QR code");
             }
         );
-        
+
         WeakReferenceMessenger.Default.Register<LoginWindowViewModel, RefreshQrCodeLogin>(
             this,
             (mainWindow, _) =>
@@ -77,7 +74,6 @@ public partial class LoginWindowViewModel : ViewModelBase
     [RelayCommand]
     private async Task LoginToSteamUsingQrCodeAsync()
     {
-        
         _ = _steamLoginQrCode.LoginToSteam(SteamLoginType.QrCode);
     }
 

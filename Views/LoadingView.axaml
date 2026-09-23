@@ -21,15 +21,22 @@
       Foreground="Blue"
       Margin="10,20,0,50"
     />
-    <Border Background="#171d25"
-            BorderBrush="Black"
-            BorderThickness="1"
-            CornerRadius="3"
-            BoxShadow="5 5 10 0 DarkGray"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Center"
-            IsVisible="{Binding Message, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-    <TextBlock Text="{Binding Message}" HorizontalAlignment="Center" Foreground="White" Padding="2"/>
+    <Border
+      Background="#171d25"
+      BorderBrush="Black"
+      BorderThickness="1"
+      CornerRadius="3"
+      BoxShadow="5 5 10 0 DarkGray"
+      HorizontalAlignment="Center"
+      VerticalAlignment="Center"
+      IsVisible="{Binding Message, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+    >
+      <TextBlock
+        Text="{Binding Message}"
+        HorizontalAlignment="Center"
+        Foreground="White"
+        Padding="2"
+      />
     </Border>
   </StackPanel>
 </UserControl>

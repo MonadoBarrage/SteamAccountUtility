@@ -1,6 +1,3 @@
 namespace SteamAccountUtility.Messages;
 
-public class RefreshQrCodeLogin
-{
-    
-}
+public class RefreshQrCodeLogin { }

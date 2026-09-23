@@ -113,7 +113,6 @@
               VerticalAlignment="Center"
               Background="White"
             >
-              
               <Image
                 Source="{Binding QrCodeImage}"
                 Stretch="Uniform"
@@ -122,7 +121,6 @@
                 Width="150"
                 Height="150"
               />
-              
             </Border>
 
             <!-- <HyperlinkButton -->
@@ -130,11 +128,10 @@
             <!--   Content="How do I log in with a QR code?" -->
             <!--   HorizontalAlignment="Center" -->
             <!-- /> -->
-            
           </StackPanel>
         </WrapPanel>
       </WrapPanel>
     </Border>
-    <TextBlock Text="{Binding ErrorMessage}" Foreground="Red" HorizontalAlignment="Center"/>
+    <TextBlock Text="{Binding ErrorMessage}" Foreground="Red" HorizontalAlignment="Center" />
   </StackPanel>
 </UserControl>

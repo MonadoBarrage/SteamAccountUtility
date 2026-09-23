@@ -10,7 +10,6 @@
   x:Class="SteamAccountUtility.Views.LoginSubmitCodeView"
   x:DataType="vm:LoginSubmitCodeViewModel"
 >
-
   <UserControl.Styles>
     <Style Selector="TextBlock.Label">
       <Setter Property="FontSize" Value="16" />

@@ -21,9 +21,9 @@ public partial class MainWindowViewModel : ViewModelBase
     private bool _isBarVisible;
 
     private SteamLogin _steamLogin;
-    
+
     private bool _isLoggedIn;
-    
+
     public MainWindowViewModel()
     {
         _isBarVisible = false;
@@ -74,7 +74,7 @@ public partial class MainWindowViewModel : ViewModelBase
             {
                 if (_isLoggedIn)
                     return;
-                
+
                 mainWindow.CurrentPage = new LoginWindowViewModel(
                     fullServerAddress,
                     receivedMessage.ErrorMessage
