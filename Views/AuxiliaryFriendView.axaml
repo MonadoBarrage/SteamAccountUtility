@@ -11,6 +11,27 @@
   x:DataType="vm:AuxiliaryFriendViewModel"
   Width="200"
 >
+  
+  <UserControl.Styles>
+    <Style Selector="Border.NamesBorder">
+      <Setter Property="HorizontalAlignment" Value="Center" />
+      <Setter Property="Background" Value="#171d25"/>
+      <Setter Property="Margin" Value="0 4 0 3"/>
+      <Setter Property="Padding" Value="2 0 0 2 " />
+      <Setter Property="CornerRadius" Value="5"/>
+      
+    </Style>
+    <Style Selector="TextBlock.Names">
+      
+      <!-- <Setter Property="Width" Value="300" /> -->
+      <!-- <Setter Property="Height" Value="50" /> -->
+      <Setter Property="MaxLines" Value="1" />
+      <Setter Property="HorizontalAlignment" Value="Center" />
+      <Setter Property="Margin" Value="5" />
+      <Setter Property="Foreground" Value="AliceBlue" />
+      <!-- <Setter Property=""/> -->
+    </Style>
+  </UserControl.Styles>
   <StackPanel Spacing="5">
     <!-- <Border CornerRadius="10"> -->
     <StackPanel>
@@ -19,15 +40,19 @@
             Converter={x:Static ObjectConverters.IsNull}}"
         Source="avares://SteamAccountUtility/Assets/IconImageNotFound.png"
       />
+      <Border Classes="NamesBorder">
       <TextBlock
+        Classes="Names"
         IsVisible="{Binding Friend.ProfileName, 
             Converter={x:Static ObjectConverters.IsNull}}"
         Text="Username not Found"
-        HorizontalAlignment="Center"
       />
-
+      </Border>
       <Image Stretch="Uniform" Source="{Binding Friend.AvatarIcon}" />
-      <TextBlock Text="{Binding Friend.ProfileName}" HorizontalAlignment="Center" />
+      <Border Classes="NamesBorder">
+      <TextBlock Text="{Binding Friend.ProfileName}"  
+                 Classes="Names"/>
+      </Border>
     </StackPanel>
 
     <!-- </Border> -->

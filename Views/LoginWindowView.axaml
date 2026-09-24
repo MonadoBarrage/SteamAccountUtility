@@ -4,6 +4,7 @@
   xmlns:vm="using:SteamAccountUtility.ViewModels"
   xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  xmlns:ic="using:FluentIcons.Avalonia"
   mc:Ignorable="d"
   d:DesignWidth="800"
   d:DesignHeight="450"
@@ -113,14 +114,28 @@
               VerticalAlignment="Center"
               Background="White"
             >
-              <Image
-                Source="{Binding QrCodeImage}"
-                Stretch="Uniform"
-                MinWidth="150"
-                MinHeight="150"
-                Width="150"
-                Height="150"
-              />
+              <Panel>
+                <Image
+                  Source="{Binding QrCodeImage}"
+                  Stretch="Uniform"
+                  MinWidth="150"
+                  MinHeight="150"
+                  Width="150"
+                  Height="150"
+                  ZIndex="0"
+                />
+                <Button HorizontalAlignment="Center" VerticalAlignment="Center" CornerRadius="4" 
+                        Command="{Binding LoginToSteamUsingQrCodeCommand}"
+                        IsVisible="{Binding IsQrCodeButtonEnabled}"
+                        >
+                  <ic:FluentIcon Icon="ArrowClockwise"
+                                 IconVariant="Filled"
+                                 Foreground="Black"
+                                 IconSize="Size32"
+                                 />
+                </Button>
+              <!-- <Button Content="{iconPacks:PackIconBootstrapIcons ArrowRepeat}" /> -->
+              </Panel>
             </Border>
 
             <!-- <HyperlinkButton -->

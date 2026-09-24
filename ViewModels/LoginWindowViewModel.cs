@@ -29,7 +29,7 @@ public partial class LoginWindowViewModel : ViewModelBase
     private Bitmap? _qrCodeImage;
 
     [ObservableProperty]
-    private bool _isQrCodeButtonEnabled = false;
+    private bool _isQrCodeButtonEnabled;
 
     private AllSteamData? _allSteamData;
 
@@ -74,6 +74,7 @@ public partial class LoginWindowViewModel : ViewModelBase
     [RelayCommand]
     private async Task LoginToSteamUsingQrCodeAsync()
     {
+        IsQrCodeButtonEnabled = false;
         _ = _steamLoginQrCode.LoginToSteam(SteamLoginType.QrCode);
     }
 
