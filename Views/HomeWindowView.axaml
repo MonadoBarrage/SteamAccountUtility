@@ -26,6 +26,22 @@
   <!-- </Window.Resources> -->
 
   <Window.Styles>
+    <Style Selector="Border.NamesBorder">
+      <Setter Property="HorizontalAlignment" Value="Center" />
+      <Setter Property="Background" Value="#171d25" />
+      <Setter Property="Margin" Value="0 4 0 3" />
+      <Setter Property="Padding" Value="2 0 0 2 " />
+      <Setter Property="CornerRadius" Value="5" />
+    </Style>
+    <Style Selector="TextBlock.Names">
+      <!-- <Setter Property="Width" Value="300" /> -->
+      <!-- <Setter Property="Height" Value="50" /> -->
+      <Setter Property="MaxLines" Value="1" />
+      <Setter Property="HorizontalAlignment" Value="Center" />
+      <Setter Property="Margin" Value="3" />
+      <Setter Property="Foreground" Value="AliceBlue" />
+      <!-- <Setter Property=""/> -->
+    </Style>
     <Style Selector="Border.SubBox">
       <Setter Property="BorderBrush" Value="Black" />
       <Setter Property="BorderThickness" Value="3" />
@@ -76,17 +92,21 @@
               Width="184"
               Height="184"
               Stretch="Uniform"
-              Source="{Binding CurrentUser.AvatarIcon}"
+              Source="avares://SteamAccountUtility/Assets/frieren-icon.png"
             />
           </Border>
-          <TextBlock
+          <Border 
+            Classes="NamesBorder"
             Grid.Row="1"
-            Grid.Column="0"
-            Grid.ColumnSpan="3"
+                  Grid.Column="0"
+                  Grid.ColumnSpan="3">
+          <TextBlock
+            Classes="Names"
             FontFamily="fonts:AppFonts#Motiva Sans Bold"
             HorizontalAlignment="Center"
-            Text="{Binding CurrentUser.ProfileName}"
+            Text="The Steamer Cleaner"
           />
+          </Border>
         </Grid>
         <Grid
           ColumnDefinitions="50*,25*,25*"
