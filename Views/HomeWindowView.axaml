@@ -92,20 +92,16 @@
               Width="184"
               Height="184"
               Stretch="Uniform"
-              Source="avares://SteamAccountUtility/Assets/frieren-icon.png"
+              Source="{Binding CurrentUser.AvatarIcon}"
             />
           </Border>
-          <Border 
-            Classes="NamesBorder"
-            Grid.Row="1"
-                  Grid.Column="0"
-                  Grid.ColumnSpan="3">
-          <TextBlock
-            Classes="Names"
-            FontFamily="fonts:AppFonts#Motiva Sans Bold"
-            HorizontalAlignment="Center"
-            Text="The Steamer Cleaner"
-          />
+          <Border Classes="NamesBorder" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3">
+            <TextBlock
+              Classes="Names"
+              FontFamily="fonts:AppFonts#Motiva Sans Bold"
+              HorizontalAlignment="Center"
+              Text="{Binding CurrentUser.ProfileName}"
+            />
           </Border>
         </Grid>
         <Grid
