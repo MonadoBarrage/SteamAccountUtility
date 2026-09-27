@@ -49,6 +49,7 @@ jobs:
 
 
   create-window-setup:
+    needs: build
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/download-artifact@v8
