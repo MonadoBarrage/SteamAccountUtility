@@ -1,4 +1,6 @@
 # STEAM ACCOUNT UTILITY
+> [!IMPORTANT]
+> Read the Requirements section before running the application.
 
 A fun little app to display Steam stats of a user as well as
 any fun features I can think of, such as a game randomizer for those who
@@ -10,6 +12,16 @@ If you got any other recommendations, let me know!
 ![A Games Library to display your goated collection](Assets/Docs/games.png)
 
 ![The funny little Game Randomizer if you don't know what to play](Assets/Docs/randomizer.png)
+
+## Requirements
+### Windows
+Install the Microsoft Visual C++ Redistributable library here -> https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170
+
+### Linux
+
+
+### MacOS
+
 
 ## Technologies and Languages
 - **C#:** The programming language used throughout this project

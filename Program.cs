@@ -27,9 +27,9 @@ sealed class Program
         AppBuilder
             .Configure<App>()
             .UsePlatformDetect()
-#if DEBUG
-            .WithDeveloperTools()
-#endif
+// #if DEBUG
+//             .WithDeveloperTools()
+// #endif
             .ConfigureFonts(fontManager =>
             {
                 fontManager.AddFontCollection(new AppFontCollection());

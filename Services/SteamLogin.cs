@@ -90,6 +90,7 @@ public class SteamLogin : IDisposable
         try
         {
             _cancellationSource = new CancellationTokenSource();
+            _cancellationSource.CancelAfter(120000);
             _token = _cancellationSource.Token;
             _loginTaskCompletionSource = new TaskCompletionSource<bool>();
             _errorCheckTaskCompletionSource = new TaskCompletionSource<bool>();
@@ -341,8 +342,15 @@ public class SteamLogin : IDisposable
                 return;
             }
 
-            Keyring.SetPassword("SteamAccountUtility", "Steam", "username", _username);
-            Keyring.SetPassword("SteamAccountUtility", "Steam", "refreshToken", _refreshToken);
+            try
+            {
+                Keyring.SetPassword("SteamAccountUtility", "Steam", "username", _username);
+                Keyring.SetPassword("SteamAccountUtility", "Steam", "refreshToken", _refreshToken);
+            }
+            catch (Exception e)
+            {
+                Console.Error.WriteLine(e);
+            }
 
             Console.WriteLine("Successfully logged on!");
 
