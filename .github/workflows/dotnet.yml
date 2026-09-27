@@ -13,54 +13,63 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: 10.0.x    
-        
-    - name: Restore dependencies
-      run: dotnet restore
-    
-    - name: Build
-      run: dotnet build --no-restore
-    
-    - name: Test
-      run: dotnet test --no-build --verbosity normal
-      
-    - name: Publish Windows x64
-      run: dotnet publish -c Release -r win-x64
-      
-    - name: Publish Linux x64
-      run: dotnet publish -c Release -r linux-x64
+      - uses: actions/checkout@v4
 
-    - name: Upload Window artifacts
-      uses: actions/upload-artifact@v7
-      with:
-        name: win-x64_package
-        path: bin/Release/net10.0/win-x64/publish
-    
-    - name: Upload Linux artifacts
-      uses: actions/upload-artifact@v7
-      with:
-        name: linux-x64_package
-        path: bin/Release/net10.0/linux-x64/publish
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore
+
+      - name: Test
+        run: dotnet test --no-build --verbosity normal
+
+      - name: Publish Windows x64
+        run: dotnet publish -c Release -r win-x64
+
+      - name: Publish Linux x64
+        run: dotnet publish -c Release -r linux-x64
+
+      - name: Upload Window artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: win-x64_package
+          path: bin/Release/net10.0/win-x64/publish
+
+      - name: Upload Linux artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: linux-x64_package
+          path: bin/Release/net10.0/linux-x64/publish
+
+      - name: Upload Inno Script
+        uses: actions/upload-artifact@v7
+        with:
+          name: inno_script
+          path: InnoSetup.iss
 
   create-window-setup:
     needs: build
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
-      - run: ls
-      - uses: actions/download-artifact@v8
+      - name: Download Windows Package
+        uses: actions/download-artifact@v8
         with:
           name: win-x64_package
           path: windows_build
-      - name: Display structure of downloaded files
-        run: ls windows_build
-        
-      
+      - name: Download Inno Script
+        uses: actions/download-artifact@v8
+        with:
+          name: inno_script
 
-
-        
+      - name: Compile .ISS to .EXE Installer
+        uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
+        with:
+          path: InnoSetup.iss
+          options: /O+
+      - run: ls
