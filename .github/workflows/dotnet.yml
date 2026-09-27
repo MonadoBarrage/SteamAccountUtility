@@ -11,7 +11,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
 
@@ -52,24 +52,31 @@ jobs:
         with:
           name: inno_script
           path: InnoSetup.iss
-
-  create-window-setup:
-    needs: build
-    runs-on: windows-latest
-    steps:
-      - name: Download Windows Package
-        uses: actions/download-artifact@v8
-        with:
-          name: win-x64_package
-          path: windows_build
-      - name: Download Inno Script
-        uses: actions/download-artifact@v8
-        with:
-          name: inno_script
-
+          
       - name: Compile .ISS to .EXE Installer
         uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
         with:
           path: InnoSetup.iss
           options: /O+
       - run: ls
+
+#  create-window-setup:
+#    needs: build
+#    runs-on: windows-latest
+#    steps:
+#      - name: Download Windows Package
+#        uses: actions/download-artifact@v8
+#        with:
+#          name: win-x64_package
+#          path: windows_build
+#      - name: Download Inno Script
+#        uses: actions/download-artifact@v8
+#        with:
+#          name: inno_script
+#
+#      - name: Compile .ISS to .EXE Installer
+#        uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
+#        with:
+#          path: InnoSetup.iss
+#          options: /O+
+#      - run: ls

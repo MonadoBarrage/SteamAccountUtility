@@ -3,7 +3,7 @@
 ; Non-commercial use only.
 
 #define MyAppName "SteamAccountUtility"
-#define Repo "SteamAccountUtility"
+#define ReleaseFolder "bin\Release\net10.0\win-x64\publish\"
 #define MyAppVersion "1.0"
 #define MyAppPublisher "MonadoBarrage"
 #define MyAppExeName "SteamAccountUtility.exe"
@@ -41,8 +41,8 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "{win}\{#Repo}\{#Repo}\window_build\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{win}\{#Repo}\{#Repo}\window_build\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "{#ReleaseFolder}\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#ReleaseFolder}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files.
 
 [Icons]
