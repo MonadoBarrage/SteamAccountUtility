@@ -54,7 +54,7 @@ jobs:
     steps:
       - uses: actions/download-artifact@v8
         with:
-          name: my-artifact
+          name: win-x64_package
       - name: Display structure of downloaded files
         run: ls -R
 
