@@ -47,16 +47,20 @@ jobs:
         name: linux-x64_package
         path: bin/Release/net10.0/linux-x64/publish
 
-
   create-window-setup:
     needs: build
-    runs-on: ubuntu-24.04
+    runs-on: windows-latest
     steps:
+      - uses: actions/checkout@v4
+      - run: ls
       - uses: actions/download-artifact@v8
         with:
           name: win-x64_package
+          path: windows_build
       - name: Display structure of downloaded files
-        run: ls -R
+        run: ls windows_build
+        
+      
 
 
         
