@@ -12,8 +12,6 @@
 
   <ItemGroup>
     <AvaloniaResource Include="Assets\**" />
-    <AvaloniaResource Include="bin\Release\net10.0\linux-x64\publish\sau-setup.sh" />
-    <AvaloniaResource Include="Packaging\Linux\sau-setup.sh" />
   </ItemGroup>
 
   <ItemGroup>
@@ -76,10 +74,5 @@
       <DependentUpon>LoadingView.axaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="bin\Release\net10.0\linux-x64\publish\sau-icon.png" />
-    <None Include="bin\Release\net10.0\linux-x64\publish\SteamAccountUtility.desktop" />
   </ItemGroup>
 </Project>
