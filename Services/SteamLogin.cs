@@ -35,14 +35,13 @@ public class SteamLogin : IDisposable
     private readonly SteamClient _steamClient;
     private readonly SteamHttpRequests _steamHttpRequests;
 
-    private SteamFriends? _steamFriends;
-    private SteamUser? _steamUser;
+    private readonly SteamFriends? _steamFriends;
+    private readonly SteamUser? _steamUser;
 
     private int _remainingFetches;
     private TaskCompletionSource<bool> _loginTaskCompletionSource;
 
     private int _errorChecker;
-    private TaskCompletionSource<bool> _errorCheckTaskCompletionSource;
 
     private UserData _userData = new();
     private readonly ObservableCollection<FriendData> _friendsCollection = [];
@@ -65,7 +64,6 @@ public class SteamLogin : IDisposable
         _cancellationSource = new CancellationTokenSource();
         _token = _cancellationSource.Token;
         _loginTaskCompletionSource = new TaskCompletionSource<bool>();
-        _errorCheckTaskCompletionSource = new TaskCompletionSource<bool>();
 
         _steamClient = new SteamClient();
 
@@ -93,7 +91,6 @@ public class SteamLogin : IDisposable
             _cancellationSource.CancelAfter(120000);
             _token = _cancellationSource.Token;
             _loginTaskCompletionSource = new TaskCompletionSource<bool>();
-            _errorCheckTaskCompletionSource = new TaskCompletionSource<bool>();
 
             _steamClient.Disconnect();
             _currentLoginType = lt;
@@ -109,34 +106,39 @@ public class SteamLogin : IDisposable
         }
         catch (Exception e)
         {
-            TerminateClient();
-            Console.WriteLine(e);
+            TerminateClient(e);
         }
     }
 
-    public void TerminateClient()
+    public void TerminateClient(Exception? e = null)
     {
-        if (Interlocked.Decrement(ref _errorChecker) == 0)
+        if (e != null)
         {
-            _cancellationSource.Cancel();
-            _steamClient.Disconnect();
-            _isRunning = false;
-            _loginTaskCompletionSource.TrySetResult(false);
-            switch (_currentLoginType)
-            {
-                case SteamLoginType.Default:
-                    WeakReferenceMessenger.Default.Send(new GoToLoginScreen("Error logging in"));
-                    break;
-                case SteamLoginType.RefreshToken:
-                    WeakReferenceMessenger.Default.Send(new GoToLoginScreen(""));
-                    break;
-                case SteamLoginType.QrCode:
-                    WeakReferenceMessenger.Default.Send(new RefreshQrCodeLogin());
-                    break;
-            }
+            Console.Error.WriteLine(e);
         }
 
-        Console.WriteLine("Disconnecting from Steam...");
+        if (Interlocked.Decrement(ref _errorChecker) != 0)
+            return;
+
+        _cancellationSource.Cancel();
+        _steamClient.Disconnect();
+        _isRunning = false;
+        _loginTaskCompletionSource.TrySetResult(false);
+        switch (_currentLoginType)
+        {
+            case SteamLoginType.Default:
+                WeakReferenceMessenger.Default.Send(new GoToLoginScreen("Error logging in"));
+                break;
+            case SteamLoginType.RefreshToken:
+                WeakReferenceMessenger.Default.Send(new GoToLoginScreen(""));
+                break;
+            case SteamLoginType.QrCode:
+                WeakReferenceMessenger.Default.Send(new RefreshQrCodeLogin());
+                break;
+            default:
+                WeakReferenceMessenger.Default.Send(new GoToLoginScreen("Error logging in"));
+                break;
+        }
     }
 
     public void Dispose()
@@ -151,7 +153,6 @@ public class SteamLogin : IDisposable
             _loginTaskCompletionSource.TrySetResult(true);
             _isRunning = false;
         }
-        Console.Write("Fetches remaining: {0}", _remainingFetches);
     }
 
     private async void OnConnected(SteamClient.ConnectedCallback callback)
@@ -176,8 +177,7 @@ public class SteamLogin : IDisposable
         }
         catch (Exception e)
         {
-            TerminateClient();
-            Console.WriteLine(e);
+            TerminateClient(e);
         }
     }
 
@@ -190,8 +190,7 @@ public class SteamLogin : IDisposable
         }
         catch (KeyringException ex)
         {
-            Console.Error.WriteLine(ex);
-            TerminateClient();
+            TerminateClient(ex);
             return;
         }
 
@@ -251,8 +250,7 @@ public class SteamLogin : IDisposable
         }
         catch (Exception e)
         {
-            TerminateClient();
-            Console.WriteLine(e);
+            TerminateClient(e);
         }
     }
 
@@ -297,16 +295,12 @@ public class SteamLogin : IDisposable
         }
         catch (Exception e)
         {
-            TerminateClient();
-            Console.WriteLine(e);
+            TerminateClient(e);
         }
     }
 
     private void DrawQrCode(QrAuthSession authSession)
     {
-        Console.WriteLine($"Challenge URL: {authSession.ChallengeURL}");
-        Console.WriteLine();
-
         // Encode the link as a QR code
         using var qrGenerator = new QRCodeGenerator();
         var qrCodeData = qrGenerator.CreateQrCode(
@@ -318,8 +312,6 @@ public class SteamLogin : IDisposable
         var qrCodeImage = pngRenderer.GetGraphic(20);
         using var stream = new MemoryStream(qrCodeImage);
         WeakReferenceMessenger.Default.Send(new UpdateQrCode(new Bitmap(stream)));
-
-        Console.WriteLine("Use the Steam Mobile App to sign in via QR code:");
     }
 
     private void OnDisconnected(SteamClient.DisconnectedCallback callback)
@@ -376,8 +368,7 @@ public class SteamLogin : IDisposable
         }
         catch (Exception e)
         {
-            TerminateClient();
-            Console.WriteLine(e);
+            TerminateClient(e);
         }
     }
 
@@ -425,8 +416,7 @@ public class SteamLogin : IDisposable
         }
         catch (Exception e)
         {
-            TerminateClient();
-            Console.WriteLine(e);
+            TerminateClient(e);
         }
     }
 
@@ -444,14 +434,12 @@ public class SteamLogin : IDisposable
                 AvatarIcon = newAvatarPhoto,
             };
 
-            Console.WriteLine("Completed user profile");
             _userData = ud;
             CompleteCallback();
         }
         catch (Exception e)
         {
-            TerminateClient();
-            Console.WriteLine(e);
+            TerminateClient(e);
         }
     }
 
@@ -474,13 +462,11 @@ public class SteamLogin : IDisposable
                 await _steamFriends.RequestProfileInfo(steamIdFriend);
             }
 
-            Console.WriteLine("Completed friends list");
             CompleteCallback();
         }
         catch (Exception e)
         {
-            TerminateClient();
-            Console.WriteLine(e);
+            TerminateClient(e);
         }
     }
 
@@ -505,14 +491,12 @@ public class SteamLogin : IDisposable
             }
 
             _gamesList = fetchedGames;
-            Console.WriteLine("Completed game list");
 
             CompleteCallback();
         }
         catch (Exception e)
         {
-            TerminateClient();
-            Console.WriteLine(e);
+            TerminateClient(e);
         }
     }
 
@@ -538,13 +522,11 @@ public class SteamLogin : IDisposable
 
             _badgesAndLevels = fetchedBadgesAndLevels;
 
-            Console.WriteLine("Completed badges and levels");
             CompleteCallback();
         }
         catch (Exception e)
         {
-            TerminateClient();
-            Console.WriteLine(e);
+            TerminateClient(e);
         }
     }
 
@@ -576,13 +558,11 @@ public class SteamLogin : IDisposable
 
             _recentlyPlayedGamesResponse = gameIDs;
 
-            Console.WriteLine("Completed recently played games");
             CompleteCallback();
         }
         catch (Exception e)
         {
-            TerminateClient();
-            Console.WriteLine(e);
+            TerminateClient(e);
         }
     }
 

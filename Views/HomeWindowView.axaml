@@ -10,21 +10,6 @@
   x:Class="SteamAccountUtility.Views.HomeWindowView"
   x:DataType="vm:HomeWindowViewModel"
 >
-  <!-- <Window.Resources> -->
-  <!--     <DrawingImage x:Key="CoverFallback"> -->
-  <!--         <DrawingImage.Drawing> -->
-  <!--             <DrawingGroup> -->
-  <!--                 <GeometryDrawing> -->
-  <!--                     <RectangleGeometry Rect="10,-10,0.5,0.5" /> -->
-  <!--                 </GeometryDrawing> -->
-  <!--                 <GeometryDrawing Brush="White" -->
-  <!--                                  Geometry="{DynamicResource PersonIcon}" /> -->
-  <!--             </DrawingGroup> -->
-  <!-- -->
-  <!--         </DrawingImage.Drawing> -->
-  <!--     </DrawingImage> -->
-  <!-- </Window.Resources> -->
-
   <Window.Styles>
     <Style Selector="Border.NamesBorder">
       <Setter Property="HorizontalAlignment" Value="Center" />
@@ -47,6 +32,9 @@
       <Setter Property="BorderThickness" Value="3" />
       <Setter Property="CornerRadius" Value="10" />
       <Setter Property="Background" Value="#171d25" />
+      <!-- <Setter Property="HorizontalAlignment" Value="Center" /> -->
+      <!-- <Setter Property="VerticalAlignment" Value="Center"/> -->
+      <Setter Property="Padding" Value="10 0" />
     </Style>
     <Style Selector="TextBlock.SubBoxTitle">
       <Setter Property="FontFamily" Value="fonts:AppFonts#Motiva Sans ExtraBold" />
@@ -68,56 +56,35 @@
     </Style>
   </Window.Styles>
 
-  <StackPanel>
-    <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="250 20 250 20">
+  <Panel>
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="0 40 0 0">
       <StackPanel>
-        <Grid
-          ColumnDefinitions="*,200,*"
-          RowDefinitions="200, 30, *, *"
-          Background="Transparent"
-          RowSpacing="10"
-          ColumnSpacing="4"
+        <Border
+          BorderBrush="Aqua"
+          BorderThickness="5"
+          CornerRadius="10"
+          ClipToBounds="True"
+          HorizontalAlignment="Center"
+          VerticalAlignment="Center"
         >
-          <Border
-            BorderBrush="Aqua"
-            BorderThickness="5"
-            Grid.Row="0"
-            Grid.Column="1"
-            CornerRadius="10"
-            ClipToBounds="True"
+          <Image
+            Width="184"
+            Height="184"
+            Stretch="Uniform"
+            Source="{Binding CurrentUser.AvatarIcon}"
+          />
+        </Border>
+        <Border Classes="NamesBorder">
+          <TextBlock
+            Classes="Names"
+            FontFamily="fonts:AppFonts#Motiva Sans Bold"
             HorizontalAlignment="Center"
-            VerticalAlignment="Center"
-          >
-            <Image
-              Width="184"
-              Height="184"
-              Stretch="Uniform"
-              Source="{Binding CurrentUser.AvatarIcon}"
-            />
-          </Border>
-          <Border Classes="NamesBorder" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3">
-            <TextBlock
-              Classes="Names"
-              FontFamily="fonts:AppFonts#Motiva Sans Bold"
-              HorizontalAlignment="Center"
-              Text="{Binding CurrentUser.ProfileName}"
-            />
-          </Border>
-        </Grid>
-        <Grid
-          ColumnDefinitions="50*,25*,25*"
-          RowDefinitions="*,*,*,*,*"
-          RowSpacing="10"
-          ColumnSpacing="4"
-        >
-          <Border
-            Classes="SubBox"
-            Grid.Row="0"
-            Grid.Column="0"
-            Grid.ColumnSpan="2"
-            Grid.RowSpan="5"
-            ClipToBounds="True"
-          >
+            Text="{Binding CurrentUser.ProfileName}"
+          />
+        </Border>
+
+        <WrapPanel HorizontalAlignment="Center" ItemSpacing="10" ItemsAlignment="Center">
+          <Border Classes="SubBox" ClipToBounds="True">
             <StackPanel>
               <TextBlock Classes="SubBoxTitle">Recent Activity</TextBlock>
 
@@ -147,7 +114,8 @@
               </ItemsControl>
             </StackPanel>
           </Border>
-          <Border Classes="SubBox" Grid.Row="0" Grid.Column="2" Grid.RowSpan="2">
+
+          <Border Classes="SubBox">
             <StackPanel>
               <StackPanel Orientation="Horizontal">
                 <TextBlock Classes="SubBoxTitle">Level</TextBlock>
@@ -170,8 +138,8 @@
               </StackPanel>
             </StackPanel>
           </Border>
-        </Grid>
+        </WrapPanel>
       </StackPanel>
     </ScrollViewer>
-  </StackPanel>
+  </Panel>
 </Window>
