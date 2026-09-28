@@ -1,5 +1,3 @@
-# v0.0.1
-
 This is the first release of the Steam Account Utility App. 
 I hope you guys enjoy this app and I hope to modify this even further
 with new features later on.
