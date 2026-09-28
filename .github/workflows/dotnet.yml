@@ -5,16 +5,14 @@ name: .NET
 
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    tags:
+      - 'v*'
 
 jobs:
   build:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
@@ -34,31 +32,56 @@ jobs:
 
       - name: Publish Linux x64
         run: dotnet publish -c Release -r linux-x64
-
-      - name: Upload Window artifacts
-        uses: actions/upload-artifact@v7
-        with:
-          name: win-x64_package
-          path: bin/Release/net10.0/win-x64/publish
-
-      - name: Upload Linux artifacts
-        uses: actions/upload-artifact@v7
-        with:
-          name: linux-x64_package
-          path: bin/Release/net10.0/linux-x64/publish
-
-      - name: Upload Inno Script
-        uses: actions/upload-artifact@v7
-        with:
-          name: inno_script
-          path: InnoSetup.iss
           
       - name: Compile .ISS to .EXE Installer
         uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
         with:
           path: InnoSetup.iss
           options: /O+
-      - run: ls
+
+      - name: Upload Window artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: win-x64_package
+          path: Output
+
+      - name: Upload Linux artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: linux-x64_package
+          path: bin/Release/net10.0/linux-x64/publish
+          
+          
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch Linux package
+        uses: actions/download-artifact@v8
+        with:
+          name: linux-x64_package
+          path: linux-x64/
+      
+      - name: Fetch Windows package
+        uses: actions/download-artifact@v8
+        with:
+          name: win-x64_package
+          
+      - run: ls linux-x64
+      
+      - name: Zip Linux archive
+        run: zip -r linux-x64.zip linux-x64/
+        
+      - name: Create a new release
+        uses: softprops/action-gh-release@v3
+        with: 
+          body: |
+            Testing this release automation
+            through trial and error
+          files: |
+            linux-x64.zip
+            SteamAccountUtilitySetup.exe
+
+
 
 #  create-window-setup:
 #    needs: build
