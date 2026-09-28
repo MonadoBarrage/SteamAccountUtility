@@ -1,5 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
+    <ApplicationIcon>Assets\sau-icon.ico</ApplicationIcon>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0</TargetFramework>
     <PublishSingleFile>true</PublishSingleFile>
@@ -11,6 +12,8 @@
 
   <ItemGroup>
     <AvaloniaResource Include="Assets\**" />
+    <AvaloniaResource Include="bin\Release\net10.0\linux-x64\publish\sau-setup.sh" />
+    <AvaloniaResource Include="Packaging\Linux\sau-setup.sh" />
   </ItemGroup>
 
   <ItemGroup>
@@ -27,7 +30,7 @@
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
     <PackageReference Include="Deadpikle.AvaloniaProgressRing" Version="1.0.0-rc1" />
     <PackageReference Include="FluentIcons.Avalonia" Version="2.1.341" />
-    <PackageReference Include="keyring-dotnet" Version="1.2.0" />
+    <PackageReference Include="KeySharp" Version="1.0.5" />
     <PackageReference Include="QRCoder" Version="1.8.0" />
     <PackageReference Include="SteamKit2" Version="3.4.0" />
   </ItemGroup>
@@ -73,5 +76,10 @@
       <DependentUpon>LoadingView.axaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="bin\Release\net10.0\linux-x64\publish\sau-icon.png" />
+    <None Include="bin\Release\net10.0\linux-x64\publish\SteamAccountUtility.desktop" />
   </ItemGroup>
 </Project>

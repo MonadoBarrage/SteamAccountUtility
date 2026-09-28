@@ -1,0 +1,6 @@
+[Desktop Entry]
+Name=Steam Account Utility
+Exec=/usr/local/bin/SteamAccountUtility/SteamAccountUtility
+Icon=sau-icon
+Terminal=false
+Type=Application

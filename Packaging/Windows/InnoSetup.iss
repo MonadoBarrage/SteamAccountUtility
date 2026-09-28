@@ -3,7 +3,7 @@
 ; Non-commercial use only.
 
 #define MyAppName "SteamAccountUtility"
-#define ReleaseFolder "bin\Release\net10.0\win-x64\publish\"
+#define ReleaseFolder "..\..\bin\Release\net10.0\win-x64\publish\"
 #define MyAppVersion "1.0"
 #define MyAppPublisher "MonadoBarrage"
 #define MyAppExeName "SteamAccountUtility.exe"
@@ -11,9 +11,6 @@
 #define EscapeConstArgument(Value) StringChange(StringChange(StringChange(Value, "%", "%25"), ",", "%2c"), "}", "%7d")
 
 [Setup]
-; NOTE: The value of AppId uniquely identifies this application. Do not use the same AppId value in installers for other applications.
-; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
-AppId={{D2FAA67A-EFC3-4A3F-B8D9-A0CE76AC69AB}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 ;AppVerName={cm:NameAndVersion,{#EscapeConstArgument(MyAppName)},{#EscapeConstArgument(MyAppVersion)}}
@@ -46,7 +43,7 @@ Source: "{#ReleaseFolder}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubd
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files.
 
 [Icons]
-Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
+Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; 
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 
 [Run]

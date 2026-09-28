@@ -1,7 +1,7 @@
 # This workflow will build a .NET project
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
 
-name: Building and Publishing
+name: Creating New Release
 
 on:
   push:
@@ -26,7 +26,7 @@ jobs:
 
       - name: Test
         run: dotnet test --no-build --verbosity normal
-
+      
       - name: Publish Windows x64
         run: dotnet publish -c Release -r win-x64
 
@@ -36,21 +36,31 @@ jobs:
       - name: Compile .ISS to .EXE Installer
         uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
         with:
-          path: InnoSetup.iss
+          path: Packaging/Windows/InnoSetup.iss
           options: /O+
 
+
+      - name: Move Linux Packaging Files
+        shell: bash
+        run: mv Packaging/Linux/* bin/Release/net10.0/linux-x64/publish/
+        
       - name: Upload Window artifacts
         uses: actions/upload-artifact@v7
         with:
           name: win-x64_package
-          path: Output
-
+          path: Packaging/Windows/Output
+      
       - name: Upload Linux artifacts
         uses: actions/upload-artifact@v7
         with:
           name: linux-x64_package
           path: bin/Release/net10.0/linux-x64/publish
-          
+
+      - name: Upload Changelog
+        uses: actions/upload-artifact@v7
+        with:
+          name: changelog
+          path: CHANGELOG.md
           
   release:
     needs: build
@@ -67,44 +77,22 @@ jobs:
         with:
           name: win-x64_package
           path: win-x64
-          
-      - run: ls linux-x64
+
+      - name: Fetch changelog
+        uses: actions/download-artifact@v8
+        with:
+          name: changelog
       
       - name: Zip Linux archive
-        run: zip -r linux-x64.zip linux-x64/
+        run: zip -r linux-x64.zip linux-x64/*
         
       - name: Zip Windows archive
-        run: zip -r windows-x64.zip win-x64
+        run: zip -r win-x64.zip win-x64/*
         
       - name: Create a new release
         uses: softprops/action-gh-release@v3
         with: 
-          body: |
-            Testing this release automation
-            through trial and error
+          body_path: CHANGELOG.md
           files: |
-            windows-x64.zip
+            win-x64.zip
             linux-x64.zip
-
-
-
-#  create-window-setup:
-#    needs: build
-#    runs-on: windows-latest
-#    steps:
-#      - name: Download Windows Package
-#        uses: actions/download-artifact@v8
-#        with:
-#          name: win-x64_package
-#          path: windows_build
-#      - name: Download Inno Script
-#        uses: actions/download-artifact@v8
-#        with:
-#          name: inno_script
-#
-#      - name: Compile .ISS to .EXE Installer
-#        uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
-#        with:
-#          path: InnoSetup.iss
-#          options: /O+
-#      - run: ls

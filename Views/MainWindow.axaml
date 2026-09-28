@@ -9,7 +9,7 @@
   d:DesignHeight="450"
   x:Class="SteamAccountUtility.Views.MainWindow"
   x:DataType="vm:MainWindowViewModel"
-  Icon="/Assets/avalonia-logo.ico"
+  Icon="/Assets/sau-icon.ico"
   Title="SteamAccountUtility"
   TransparencyLevelHint="AcrylicBlur"
   WindowStartupLocation="CenterScreen"
