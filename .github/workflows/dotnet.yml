@@ -1,7 +1,7 @@
 # This workflow will build a .NET project
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
 
-name: .NET
+name: Building and Publishing
 
 on:
   push:
@@ -66,6 +66,7 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           name: win-x64_package
+          path: win-x64
           
       - run: ls linux-x64
       
@@ -73,7 +74,7 @@ jobs:
         run: zip -r linux-x64.zip linux-x64/
         
       - name: Zip Windows archive
-        run: zip windows-x64.zip SteamAccountUtilitySetup.exe
+        run: zip -r windows-x64.zip win-x64
         
       - name: Create a new release
         uses: softprops/action-gh-release@v3
@@ -82,8 +83,8 @@ jobs:
             Testing this release automation
             through trial and error
           files: |
-            zip windows-x64.zip
-            SteamAccountUtilitySetup.exe
+            windows-x64.zip
+            linux-x64.zip
 
 
 
