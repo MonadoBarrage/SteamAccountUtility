@@ -72,6 +72,9 @@ jobs:
       - name: Zip Linux archive
         run: zip -r linux-x64.zip linux-x64/
         
+      - name: Zip Windows archive
+        run: zip windows-x64.zip SteamAccountUtilitySetup.exe
+        
       - name: Create a new release
         uses: softprops/action-gh-release@v3
         with: 
@@ -79,7 +82,7 @@ jobs:
             Testing this release automation
             through trial and error
           files: |
-            linux-x64.zip
+            zip windows-x64.zip
             SteamAccountUtilitySetup.exe
 
 
